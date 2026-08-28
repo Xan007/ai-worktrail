@@ -7,13 +7,16 @@ Desarrollar un sistema web donde los estudiantes registren de forma autónoma lo
 
 ## 2. Arquitectura del Sistema
 
-*   **Frontend:** Aplicación web en **React + TypeScript + Tailwind CSS**, alojada en **Cloudflare Pages**. Accesible como sitio independiente o embebible en Moodle.
+*   **Frontend:** Aplicación web en **React + TypeScript + Tailwind CSS**, alojada en **Cloudflare Pages**. Accesible como sitio independiente o embebible en Moodle. Layout compartido (`AppLayout`) con navbar/footer, componentes base reutilizables y página de pruebas de evaluación en `/dev/evaluate`.
 *   **Backend / BaaS:** **Supabase** (Postgres + RLS) + **Clerk** (Auth). Clerk maneja autenticación (email/password y Google OAuth) y sesiones; Supabase provee base de datos relacional y reglas de acceso por rol. El JWT de Clerk se pasa en cada request a Supabase para que RLS aplique las políticas correctas.
-*   **Motor de Análisis (automatizado):** **Supabase Edge Function** que consulta la entrega, extrae el texto de los chats (Jina Reader) y evalúa con la API de Gemini. Se dispara sola — no requiere que el profesor descargue ni ejecute nada localmente:
-    - **Modo `on_submit`:** un **Database Webhook** de Supabase la invoca automáticamente al insertarse la entrega.
-    - **Modo `on_demand`:** el frontend la invoca (`supabase.functions.invoke(...)`) cuando el profesor abre una entrega puntual sin `analysis` todavía.
-    - Corre con el `service_role` key de Supabase, así que escribe directo en `analysis` sin pasos intermedios (ver [flows.md](flows.md) sección 4, "Motor de evaluación automatizado").
-    - **Jina Reader — capacidad:** sin API key (uso anónimo) el límite es de **20 RPM** (requests por minuto) pero **sin tope** de cantidad total de requests. Con **API key gratuita** se suman **10M tokens** incluidos y hasta **500 RPM**. Cualquiera de las dos opciones alcanza sin problema para el volumen esperado (por curso/tarea), tanto en modo `on_submit` como `on_demand`.
+*   **Motor de Análisis (automatizado, implementado):** **Supabase Edge Functions** que consultan la entrega, extraen solo los prompts del estudiante (Jina Reader) y evalúan con la API de Gemini:
+    - **`evaluate-submission`:** motor completo — extracción resiliente por turnos, detección de gemas, desglose ponderado por criterios con evidencia citada `[CN-MK]`, total determinístico calculado en código, persistencia directa en `analysis`/`submission_chats`.
+    - **Modo `on_submit`:** hoy lo dispara el frontend justo después de insertar la entrega. *(Pendiente: Database Webhook nativo para no depender del navegador.)*
+    - **Modo `on_demand`:** el profesor pulsa Evaluate/Re-evaluate y el frontend invoca la función.
+    - **Fallback de modelos:** cadena priorizada por calidad filtrada contra ListModels; salta rate-limits (429) automáticamente. Temperatura 0 para consistencia de calificaciones.
+    - Corre con el `service_role` key de Supabase, así que escribe directo en `analysis` sin pasos intermedios.
+    - Lógica compartida en `_shared/evaluation-core.ts` (rúbrica, bandas, prompt, extracción): un solo lugar para ajustar pesos/bandas.
+    - **Jina Reader — capacidad:** sin API key (uso anónimo) el límite es de **20 RPM** pero **sin tope** total. Con **API key gratuita**: **10M tokens** incluidos y hasta **500 RPM**. Suficiente para el volumen por curso/tarea.
 
 ---
 
@@ -21,51 +24,49 @@ Desarrollar un sistema web donde los estudiantes registren de forma autónoma lo
 
 | Archivo | Contenido |
 |---|---|
-| [schema.md](schema.md) | Modelo de datos, schema SQL, políticas RLS y triggers de validación |
+| [schema.md](schema.md) | Modelo de datos, schema SQL, políticas RLS y triggers de validación, migraciones y Edge Functions |
 | [flows.md](flows.md) | Flujos detallados por actor y escenario |
 | [plan.md](plan.md) | Este archivo: objetivo, arquitectura, fases, consideraciones |
 | [business-model.md](business-model.md) | Segmentos de cliente, planes/precios, y estrategia de adquisición |
+| [evaluation-breakdown-design.md](evaluation-breakdown-design.md) | Diseño completo del motor de evaluación v2: rúbrica Brooks, bandas, citación por mensaje, extracción Jina, decisiones |
 
 ---
 
 ## 4. Fases de Desarrollo
 
-- [ ] **Fase 1: Base de datos y Auth**
-    - Schema SQL, RLS y triggers de validación de negocio (ver [schema.md](schema.md)): tamaño de grupo por categoría, coherencia grupo-tarea.
-    - Configurar Clerk (email/password y Google OAuth).
-    - Integración Clerk → Supabase: pasar JWT en cada request.
-    - Verificar aislamiento por rol y curso.
+- [x] **Fase 1: Base de datos y Auth** *(completada)*
+    - Schema SQL, RLS y triggers de validación de negocio (ver [schema.md](schema.md)).
+    - Clerk (email/password + Google OAuth) e integración con Supabase (JWT por request).
+    - Aislamiento verificado; fix de políticas SELECT aplicado (migración 00013).
 
-- [ ] **Fase 2: Frontend — Auth y Panel Profesor (Curso)**
-    - Login / registro con Clerk.
-    - Dashboard profesor: crear curso, configurar inscripción (modo, dominio, whitelist).
-    - Gestionar inscripciones pendientes.
-    - Definir categorías de grupo del curso (nombre + tamaño máximo); se podrán usar para restringir tareas grupales.
-    - Bloquear/desbloquear inscripciones.
+- [ ] **Fase 2: Frontend — Panel Profesor (Curso)** *(base hecha; falta gestión de inscripciones)*
+    - [x] Login / registro con Clerk. Layout compartido con navbar/footer.
+    - [x] Crear curso con `join_code` y modo de inscripción.
+    - [x] Listado "Teaching" / "Enrolled" con cards, copy-code, estados vacíos y skeletons.
+    - [ ] Gestionar inscripciones pendientes (aprobar/rechazar).
+    - [ ] Definir categorías de grupo del curso (schema listo, UI pendiente).
+    - [ ] Bloquear/desbloquear inscripciones.
 
-- [ ] **Fase 3: Frontend — Tareas**
-    - Flujo profesor: crear tarea (individual o grupal). Si es grupal, elige entre restringirla a una categoría de grupo del curso (el `max_group_size` se hereda de esa categoría) o dejarla abierta a cualquier grupo (define `max_group_size` directamente).
-    - Al crear la tarea, elegir el **momento de evaluación de IA** (`ai_evaluation_mode`): al instante de cada entrega, o bajo demanda cuando el profesor decida revisar (por defecto).
-    - Si es grupal, elegir el **modo de calificación** (`group_grading_mode`): compartida (un puntaje para todo el grupo) o individual (un puntaje por integrante, para identificar quién usó mal la IA sin afectar al resto).
-    - Validación de entrega grupal: si la tarea exige una categoría, el estudiante solo puede elegir entre sus grupos de esa categoría; si intenta entregar con compañeros que no forman ese grupo, el sistema avisa que no es válido.
-    - Flujo abierto: estudiante hace submit sin tarea previa; clustering IA sugiere agrupación.
-    - Cierre de tarea: automático por fecha/hora de vencimiento o manual con "Comenzar calificación".
-    - Ver entregas agrupadas; si `group_grading_mode = 'individual'`, ver el desglose de puntaje por integrante dentro del grupo.
+- [ ] **Fase 3: Frontend — Tareas** *(base hecha)*
+    - [x] Crear tarea individual o grupal con `group_grading_mode` y `ai_evaluation_mode`.
+    - [x] Ver entregas agrupadas con desglose de puntaje por integrante cuando aplique.
+    - [ ] Restricción de tareas grupales a categorías (UI).
+    - [ ] Flujo abierto: submit sin tarea previa + clustering IA para sugerir agrupación.
+    - [ ] Cierre automático por fecha / botón "Comenzar calificación".
 
-- [ ] **Fase 4: Frontend — Flujo Estudiante**
-    - Unirse a curso, cancelar solicitud pendiente.
-    - Ver tareas, entregar individual o grupal. Un estudiante puede pertenecer a más de un grupo (por ejemplo, uno por categoría); al entregar, solo ve/selecciona los grupos válidos según lo que pida la tarea.
-    - Re-enviar mientras la tarea esté abierta.
-    - Ver resultados (puntaje, justificación, flag) — propio, del grupo completo, o solo el propio dentro del grupo según `group_grading_mode`.
+- [ ] **Fase 4: Frontend — Flujo Estudiante** *(base hecha)*
+    - [x] Unirse a curso por código; entregar una o más URLs de chat; re-enviar (versiona).
+    - [x] Ver resultados completos: score + perfil Brooks + desglose con evidencia.
+    - [ ] Selección de grupos al entregar (tareas grupales); cancelar solicitud pendiente.
 
-- [ ] **Fase 5: Motor de Evaluación**
-    - Desarrollar la **Supabase Edge Function**: recibe una entrega (o corre por Database Webhook), consulta Supabase, extrae texto con Jina Reader y evalúa con Gemini Free Tier.
-    - Configurar el **Database Webhook** para el modo `on_submit` (dispara la función al insertarse la entrega).
-    - Exponer la invocación manual (`supabase.functions.invoke`) desde el frontend para el modo `on_demand`.
-    - Detección de Gemas (solo Gemini por ahora): marcar cada chat como "es gema" / "no es gema", y si coincide con la lista `approved_gems` del curso, como "verificada" (ver [flows.md](flows.md) sección 4 y [schema.md](schema.md)).
-    - Respetar `group_grading_mode` de la tarea: si es `shared`, evaluar todos los chats de la entrega juntos (un `analysis`); si es `individual`, agrupar los chats por `submission_chats.student_id` y generar un `analysis` por integrante.
-    - Guardar resultados en `analysis` directamente desde la función (con `service_role` key), sin pasos manuales.
-    - Visualización de resultados en el panel (incluyendo la etiqueta de gema por chat, y el desglose por integrante cuando aplique).
+- [x] **Fase 5: Motor de Evaluación** *(completada — ver evaluation-breakdown-design.md)*
+    - Edge Functions `evaluate-submission` + núcleo compartido `_shared/evaluation-core.ts`.
+    - Extracción prompts-only con corte por turnos `[CN-MK]`, retry chain y detección de shares muertos/inaccesibles.
+    - Desglose ponderado por 5 criterios Brooks con bandas y citas verificadas server-side; total determinístico; perfil clasificado.
+    - Fallback de modelos Gemini priorizado por calidad (resuelve rate-limits sin intervención).
+    - Detección de gemas (URL + contenido) y match contra `approved_gems`.
+    - Persistencia directa en `analysis`/`submission_chats`; `on_demand` invocable desde el frontend (`on_submit` hoy vía frontend post-insert; webhook nativo pendiente).
+    - Visualización completa en la app (profesor y estudiante ven el mismo detalle) + herramienta de prueba `/dev/evaluate`.
 
 - [ ] **Fase 6: Deploy y multi-tenancy**
     - Deploy frontend en Cloudflare Pages.
@@ -79,4 +80,6 @@ Desarrollar un sistema web donde los estudiantes registren de forma autónoma lo
 *   **Costo producción estimado:** ~$25/mes (Supabase Pro) hasta escala significativa.
 *   **Portabilidad:** Supabase es open source y auto-hospedable (`pg_dump`). Clerk permite exportar usuarios.
 *   **Resiliencia:** No depende de scraping. Usa enlaces compartidos públicos y Jina Reader como conversor estable.
+*   **Resiliencia de cuotas:** los tiers gratuitos de Gemini agotan cupos (el diario se agotó durante las pruebas). Mitigado con la cadena de fallback de modelos: cada modelo tiene cuota propia, así que la evaluación sigue funcionando aunque el modelo primario esté rate-limited. Jina Reader tiene reintentos con validación y bypass de caché para renders fallidos.
 *   **Límite conocido — Gemas de Gemini:** las instrucciones internas de una Gema no se pueden leer desde el enlace público, y el dueño puede cambiarlas en cualquier momento (antes o después de generar el chat), por lo que no son verificables por el sistema. Mitigación: el profesor puede aprobar Gemas específicas por curso (`approved_gems`) para que la evaluación se apoye en instrucciones que él conoce; fuera de eso, el estudiante puede usar Claude, ChatGPT o una Gema propia sin restricción, pero queda marcado como "no verificada". En última instancia, depende de la buena fe del estudiante — el sistema documenta la señal, no la garantiza al 100%.
+*   **Seguridad pendiente antes de producción:** las Edge Functions corren con `verify_jwt = false` (persistente desde su primer deploy) y autentican decodificando el payload del JWT sin validar firma. Hardening requerido: verificación JWKS/RS256 de Clerk dentro de cada función.

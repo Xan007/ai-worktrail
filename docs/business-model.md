@@ -58,6 +58,8 @@ Ya documentada en [plan.md](plan.md), sección 5:
 
 El costo variable principal escala con el **número de evaluaciones de IA** (llamadas a Gemini), así que ese es el eje natural para diferenciar planes gratis vs. pagos, más que el número de cursos o estudiantes en sí.
 
+Nota operativa: el motor ya implementa **cadena de fallback de modelos** priorizada por calidad — cuando un modelo agota su cuota diaria, se salta automáticamente al siguiente disponible (cada modelo tiene cuota propia). Esto reduce el riesgo de interrupciones del servicio en tiers gratuitos y suaviza el costo marginal por evaluación (los modelos flash/lite son los más baratos).
+
 ---
 
 ## 5. Estrategia de adquisición: land-and-expand
@@ -71,7 +73,7 @@ El costo variable principal escala con el **número de evaluaciones de IA** (lla
 
 ## 6. Riesgos y consideraciones
 
-- **Dependencia de tiers gratuitos de terceros:** si Gemini o Jina Reader cambian sus límites o precios, afecta directamente el margen del plan gratis y la viabilidad de mantenerlo tan generoso.
+- **Dependencia de tiers gratuitos de terceros:** si Gemini o Jina Reader cambian sus límites o precios, afecta directamente el margen del plan gratis y la viabilidad de mantenerlo tan generoso. Mitigación parcial ya implementada: fallback automático entre modelos de Gemini (cada uno con cuota propia) y reintentos con bypass de caché en Jina Reader.
 - **Competencia:** herramientas de integridad académica ya existentes (Turnitin, GPTZero, etc.) podrían agregar detección similar (auditoría de enlaces de chat de IA).
 - **Dependencia de la cooperación del estudiante:** el estudiante es quien pega los enlaces; sin una política institucional que lo haga obligatorio, la adopción a nivel de profesor independiente es "best effort" — esto refuerza por qué el segmento institucional es más valioso a largo plazo (puede convertirlo en requisito de la materia).
 

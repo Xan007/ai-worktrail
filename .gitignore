@@ -1,0 +1,31 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.local
+.DS_Store
+Thumbs.db
+supabase/.branches
+supabase/.temp
+
+# AI tools — carpetas y archivos generados (no versionar)
+.agents/
+.agents
+.claude/
+.claude
+.react-doctor/
+.react-doctor
+.muse/
+.opencode/
+
+# Privado / delicado — nunca subir al repo
+.env.local
+.env.development.local
+.env.production.local
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+private/

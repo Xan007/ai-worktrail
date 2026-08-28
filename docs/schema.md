@@ -132,11 +132,20 @@ CREATE TABLE submission_chats (
   chat_url TEXT NOT NULL,
   platform TEXT NOT NULL DEFAULT 'gemini'
     CHECK (platform IN ('gemini', 'claude', 'chatgpt', 'other')),
-  is_gem BOOLEAN DEFAULT FALSE, -- detectado por el script (solo aplica si platform = 'gemini')
+  is_gem BOOLEAN DEFAULT FALSE,
+    -- lo completa la Edge Function al analizar el chat_url: patrones de URL (/gem/, ?gem=),
+    -- match contra approved_gems normalizadas, o marcador de contenido ("creator's Gem")
   approved_gem_id UUID REFERENCES approved_gems(id) ON DELETE SET NULL,
     -- si is_gem = true y coincide con una Gema de la lista aprobada del curso, se linkea acá ("verificada")
     -- si is_gem = true pero no está en la lista, queda NULL ("gema no verificada")
   gem_instructions_pasted TEXT, -- opcional: instrucciones que el estudiante dice que tiene la Gema (no verificable por el sistema)
+  extracted_text TEXT,
+    -- texto crudo extraído del share por la función de evaluación (solo mensajes del estudiante,
+    -- vía Jina Reader con X-Target-Selector). Alimenta el panel docente "View prompts" con
+    -- marcadores de turno [CN-MK]. NULL si la extracción falló.
+  extraction_error TEXT,
+    -- motivo por el que no se pudo leer el enlace (share eliminado, privado/requiere login,
+    -- render fallido). La UI lo muestra bajo el chat. NULL cuando la extracción fue exitosa.
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -148,9 +157,16 @@ CREATE TABLE analysis (
     -- NULL: análisis de toda la entrega (individual, o grupal con group_grading_mode = 'shared')
     -- con valor: análisis de un integrante puntual (grupal con group_grading_mode = 'individual')
     -- una entrega grupal en modo 'individual' genera una fila de analysis por cada integrante
-  score NUMERIC(5,2), -- 0 a 100
-  justification TEXT,
-  flagged BOOLEAN DEFAULT FALSE, -- uso inadecuado detectado
+  score NUMERIC(5,2), -- 0 a 100; total ponderado calculado en código a partir de breakdown.criteria
+  justification TEXT, -- resumen legible (= breakdown.summary); se mantiene por compatibilidad
+  breakdown JSONB,
+    -- desglose estructurado y auditable del puntaje (ver docs/evaluation-breakdown-design.md):
+    -- { profile: productive_passenger|reluctant_optimizer|mental_marathoner,
+    --   criteria: [{ key, rating 0-100, band {level,label,description}, explanation,
+    --               evidence: [{chat, message, quote}] }],
+    --   strengths: [], improvements: [], summary }
+    -- Filas anteriores a esta feature tienen breakdown = NULL (la UI muestra render simple).
+  flagged BOOLEAN DEFAULT FALSE, -- total <= 30 (umbral determinístico, rango "Pasajero productivo")
   evaluated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
@@ -186,17 +202,25 @@ ALTER TABLE analysis ENABLE ROW LEVEL SECURITY;
 Clerk devuelve un JWT con `sub = user.id`. Supabase RLS espera que `auth.uid()` sea ese valor. La integración requiere:
 1. Configurar Clerk para que el JWT incluya el `sub` con el `user.id`.
 2. En el frontend, cada request a Supabase incluye el header `Authorization: Bearer <JWT>`.
-3. Supabase extrae el uid desde el JWT de Clerk.
+3. Supabase extrae el uid desde el JWT de Clerk (tercera parte configurada en el proyecto).
 
 Alternativa: Edge Function intermediaria que reciba el JWT de Clerk, lo valide y ejecute las queries con `auth.uid()` seteado. El frontend habla solo con tu API.
+
+**Lección aprendida — políticas SELECT con snapshot (migración 00013):**
+una política SELECT no puede re-consultar la misma tabla dentro de `USING` para decidir visibilidad
+de la fila actual: en un `INSERT ... RETURNING` (PostgREST `return=representation`) la fila recién
+insertada **no es visible para el snapshot del propio statement**, así que cualquier helper que
+re-query devuelva falso y la inserción falle con 42501. Las políticas de `submissions`
+(`submissions_select_visible`) evalúan columnas de la fila directamente (`student_id = uid`,
+docente/grupo vía helpers SECURITY DEFINER) sin re-query.
 
 ### Validaciones de negocio (triggers)
 
 RLS controla *quién* puede leer/escribir una fila, pero no puede validar relaciones cruzadas entre tablas (ej: "¿este grupo pertenece a la categoría que pide la tarea?"). Eso se resuelve con triggers, para que la regla se cumpla siempre — no solo cuando el frontend la valida.
 
-**Nota (fuera del alcance de un trigger):** `submission_chats.is_gem` y `approved_gem_id` no se calculan con un trigger de Postgres — los completa el script Python (Jina Reader) al analizar el `chat_url`, comparando contra `approved_gems` del curso. La base de datos no puede detectar por sí sola si un enlace es una Gema ni verificar sus instrucciones; ese es justo el límite explicado en `flows.md` (sección 4, "Limitación conocida: instrucciones de la Gema").
+**Nota (fuera del alcance de un trigger):** `submission_chats.is_gem`, `approved_gem_id`, `extracted_text` y `extraction_error` no se calculan con triggers de Postgres — los completa la Edge Function `evaluate-submission` al analizar cada `chat_url` (extracción Jina Reader, detección de Gema por URL/contenido, match contra `approved_gems` del curso). La base de datos no puede detectar por sí sola si un enlace es una Gema ni verificar sus instrucciones; ese es justo el límite explicado en `flows.md` (sección 4, "Limitación conocida: instrucciones de la Gema").
 
-**Nota sobre `group_grading_mode = 'individual'`:** tampoco hay un trigger que agrupe automáticamente los `submission_chats` por `student_id` y genere las filas de `analysis` — eso lo hace el script Python al evaluar: agrupa los chats de la entrega por integrante y crea un `analysis` por cada uno (en vez de uno solo para toda la entrega). La base de datos solo guarda el resultado ya calculado.
+**Nota sobre `group_grading_mode = 'individual'`:** tampoco hay un trigger que agrupe automáticamente los `submission_chats` por `student_id` y genere las filas de `analysis` — eso lo hace la Edge Function al evaluar: agrupa los chats de la entrega por integrante (buckets) y crea un `analysis` por cada uno (en vez de uno solo para toda la entrega). La base de datos solo guarda el resultado ya calculado.
 
 ```sql
 -- 1) Si un grupo tiene categoría, sus miembros no pueden superar el max_size de esa categoría
@@ -299,3 +323,27 @@ Con esto, si un estudiante intenta entregar con un grupo que no es el que le cor
 | Agregados `platform`, `is_gem`, `approved_gem_id`, `gem_instructions_pasted` en `submission_chats` | Soporta la detección de Gemas de Gemini (solo Gemini por ahora) y distingue "gema verificada" (está en `approved_gems`) de "gema no verificada" (el estudiante usó otra). Claude y ChatGPT quedan como `platform` estándar, sin este problema. |
 | Agregado `ai_evaluation_mode` en `tasks` | El profesor elige, por tarea, si la evaluación de IA se dispara sola al entregar (`on_submit`) o solo cuando el profesor abre esa entrega puntual (`on_demand`). En entregas grupales, la evaluación sigue siendo una sola por entrega (no una por miembro), sin importar el modo elegido. |
 | Agregado `group_grading_mode` en `tasks`, `student_id` en `submission_chats` y `student_id` (nullable) en `analysis` | Permite calificar cada integrante de un grupo por separado (`individual`) en vez de repartir siempre el mismo puntaje a todo el grupo (`shared`, comportamiento anterior). Cada chat queda atribuido a quien lo pegó, y el análisis se genera por integrante cuando el modo es individual. |
+
+### Migraciones aplicadas (supabase/migrations)
+
+| Migración | Contenido |
+|---|---|
+| 00001–00004 | Schema inicial, triggers, RLS y consolidación de políticas |
+| 00005–00011 | Debug de autenticación/RLS (creación y limpieza posterior) |
+| 00012 | Helpers `fn_requesting_user_id` / `fn_can_view_*` marcados VOLATILE para evaluar por fila |
+| 00013 | Fix política SELECT de `submissions`: sin re-query dentro del USING (bug de snapshot en INSERT...RETURNING — ver nota más arriba) |
+| 00014 | `analysis.breakdown JSONB` + `submission_chats.extracted_text TEXT` |
+| 00015 | `submission_chats.extraction_error TEXT` |
+
+### Edge Functions (supabase/functions)
+
+- **`evaluate-submission`** — motor de evaluación completo: extrae los prompts con Jina Reader
+  (solo mensajes del estudiante), detecta gemas, compone transcript numerado `[CN-MK]`, evalúa con
+  Gemini (cadena de fallback priorizada por calidad), calcula total ponderado determinístico,
+  persiste `analysis` + `breakdown` y actualiza `extracted_text`/`extraction_error` por chat.
+- **`evaluate-links`** — endpoint de prueba: recibe hasta 8 URLs, califica cada chat individualmente
+  y todos combinados; no persiste nada. Comparte toda la lógica vía `_shared/evaluation-core.ts`.
+- Ambas: CORS habilitado, identidad del caller decodificada desde el JWT (`sub`), temperatura 0.
+  ⚠️ Pendiente de endurecimiento: verificar firma Clerk (JWKS) dentro de las funciones — hoy el
+  gateway corre con `verify_jwt = false` (persistente desde el primer deploy) y solo se decodifica
+  el payload sin validar firma.

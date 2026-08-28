@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface-alt: var(--surface-alt);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --font-sans: var(--font-ibm-plex-sans);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+:root {
+  --radius: 0.625rem;
+  --font-ibm-plex-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-ibm-plex-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* === AI WorkTrail custom palette === */
+  --primary-brand:    #1E5AA8;
+  --primary-hover:    #174A8C;
+  --primary-active:   #123B75;
+  --primary-subtle:   #EAF1F9;
+
+  --ink:              #1A2332;
+  --ink-secondary:    #4A5568;
+  --ink-muted:        #8B95A5;
+
+  --surface:          #FFFFFF;
+  --surface-alt:      #F6F8FB;
+  --border-color:     #D9E0EA;
+
+  --success:          #1F7A4D;
+  --success-bg:       #E8F4EE;
+  --warning:          #B45309;
+  --warning-bg:       #FBF3E7;
+  --danger:           #B3372F;
+  --danger-bg:        #FBEDEB;
+
+  /* Profile colors */
+  --profile-passenger:  #A63D33;
+  --profile-optimizer:  #9C6B1F;
+  --profile-marathoner: #1F7A4D;
+
+  /* Shadcn token overrides */
+  --background:         #FFFFFF;
+  --foreground:         #1A2332;
+  --card:               #FFFFFF;
+  --card-foreground:    #1A2332;
+  --popover:            #FFFFFF;
+  --popover-foreground: #1A2332;
+  --primary:            #1E5AA8;
+  --primary-foreground: #FFFFFF;
+  --secondary:          #F6F8FB;
+  --secondary-foreground: #1A2332;
+  --muted:              #F6F8FB;
+  --muted-foreground:   #8B95A5;
+  --accent:             #EAF1F9;
+  --accent-foreground:  #1E5AA8;
+  --destructive:        #B3372F;
+  --destructive-foreground: #FFFFFF;
+  --border:             #D9E0EA;
+  --input:              #D9E0EA;
+  --ring:               #1E5AA8;
+  --radius:             6px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #1A2332;
+    background: #FFFFFF;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+  code, kbd, pre, .font-mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+}
+
+/* Utility overrides for brand colors */
+.text-ink { color: #1A2332; }
+.text-ink-secondary { color: #4A5568; }
+.text-ink-muted { color: #8B95A5; }
+.text-primary-brand { color: #1E5AA8; }
+.bg-surface-alt { background: #F6F8FB; }
+.bg-primary-subtle { background: #EAF1F9; }
+.border-brand { border-color: #D9E0EA; }
+
+/* Page fade-in */
+.page-fade {
+  animation: pageFadeIn 200ms ease-out;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Staggered list items */
+.stagger-item {
+  opacity: 0;
+  animation: staggerIn 280ms ease-out forwards;
+}
+@keyframes staggerIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+  border-color: #B8D0EA;
+}
+
+/* Course row hover */
+.course-row {
+  transition: background 150ms ease-out;
+}
+
+/* Smooth expand */
+.smooth-expand {
+  animation: expandIn 200ms ease-out;
+}
+@keyframes expandIn {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 2000px; }
+}
+
+/* Hero pattern */
+.hero-pattern {
+  background-image: 
+    linear-gradient(rgba(30, 90, 168, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 90, 168, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Tabular numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
