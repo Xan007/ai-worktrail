@@ -87,9 +87,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: callerProfile } = await adminClient
-    .from('users')
-    .select('role')
-    .eq('id', callerId)
+    .from('users').select('role').eq('id', callerId)
     .maybeSingle();
   const isStaff = callerProfile?.role === 'teacher' || callerProfile?.role === 'monitor';
   const isTeacher = course.teacher_id === callerId || isStaff;
