@@ -129,27 +129,9 @@ export function SubmissionDetailPage() {
     if (pct < 30) return 'Conectando con el servicio de IA y extrayendo conversaciones…';
     if (pct < 60) return 'Analizando patrones de prompting y calidad de interacción…';
     if (pct < 85) return 'Evaluando rúbrica pedagógica y contrastando evidencias…';
-    return 'Sintetizando fortalezas, áreas de mejora y calificación final…';
+    if (pct < 100) return 'Sintetizando fortalezas, áreas de mejora y calificación final…';
+    return '¡Evaluación completada con éxito!';
   };
-
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (evaluating) {
-      setProgressPercent(12);
-      interval = setInterval(() => {
-        setProgressPercent((prev) => {
-          if (prev < 40) return prev + Math.floor(Math.random() * 6 + 4);
-          if (prev < 70) return prev + Math.floor(Math.random() * 4 + 2);
-          if (prev < 88) return prev + Math.floor(Math.random() * 2 + 1);
-          if (prev < 92) return prev + 1;
-          return 92; // Cap at 92% while waiting for backend response
-        });
-      }, 700);
-    } else {
-      setProgressPercent(0);
-    }
-    return () => clearInterval(interval);
-  }, [evaluating]);
 
   const isTeacher = !!(user && course && course.teacher_id === user.id);
 
@@ -175,13 +157,51 @@ export function SubmissionDetailPage() {
     if (!sid) return;
     setEvaluating(true);
     setError(null);
+    setProgressPercent(8);
+
+    // Calculate benchmarked duration based on number of chats (~3.5s per chat + 4s base latency)
+    const chatCount = Math.max(1, submission?.chats.length || 1);
+    let historicalAvgPerChat = 3500;
+    try {
+      const stored = localStorage.getItem('awt_eval_benchmark_per_chat');
+      if (stored) historicalAvgPerChat = Math.max(2000, Number(stored));
+    } catch {}
+    const expectedDurationMs = 4000 + chatCount * historicalAvgPerChat;
+    const startTime = Date.now();
+
+    // Smooth interval advancing towards 92% based on expected duration
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progressFraction = Math.min(1, elapsed / expectedDurationMs);
+      // Asymptotic curve: quickly reaches 70%, then approaches 92%
+      const targetPercent = Math.min(92, Math.round(15 + 77 * Math.pow(progressFraction, 0.85)));
+      setProgressPercent((prev) => Math.max(prev, targetPercent));
+    }, 200);
+
     try {
       await evaluateSubmission(client, sid, tid);
+      const totalDuration = Date.now() - startTime;
+      // Record new benchmark
+      try {
+        const measuredPerChat = Math.round((totalDuration - 3000) / chatCount);
+        if (measuredPerChat > 1500) {
+          const newAvg = Math.round((historicalAvgPerChat * 0.6) + (measuredPerChat * 0.4));
+          localStorage.setItem('awt_eval_benchmark_per_chat', String(newAvg));
+        }
+      } catch {}
+
+      clearInterval(progressInterval);
+
+      // Satisfying completion animation: animate up to 100%
+      setProgressPercent(100);
+      await new Promise((res) => setTimeout(res, 500));
       await load();
     } catch (err) {
+      clearInterval(progressInterval);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setEvaluating(false);
+      setProgressPercent(0);
     }
   };
 
