@@ -115,15 +115,34 @@ export function SubmissionDetailPage() {
   const { user } = useUser();
   const { profile } = useProfileState();
 
-const [detail, setDetail] = useState<SubmissionDetail | null>(null);
+  const [detail, setDetail] = useState<SubmissionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [evaluating, setEvaluating] = useState(false);
-
   const course = detail?.course ?? null;
   const task = detail?.task ?? null;
   const submission = detail?.submission ?? null;
   const analysis = detail?.analysis ?? null;
+  const [evaluating, setEvaluating] = useState(false);
+  const [evalStep, setEvalStep] = useState(0);
+
+  const evalSteps = [
+    'Conectando con el servicio de IA y extrayendo conversaciones…',
+    'Analizando patrones de prompting y calidad de interacción…',
+    'Evaluando rúbrica pedagógica y contrastando evidencias…',
+    'Sintetizando fortalezas, áreas de mejora y calificación…',
+  ];
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (evaluating) {
+      setEvalStep(0);
+      interval = setInterval(() => {
+        setEvalStep((prev) => (prev < evalSteps.length - 1 ? prev + 1 : prev));
+      }, 2400);
+    }
+    return () => clearInterval(interval);
+  }, [evaluating]);
+
   const isTeacher = !!(user && course && course.teacher_id === user.id);
 
   const load = useCallback(async () => {
@@ -330,11 +349,65 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
       {/* Evaluación */}
       <section>
         <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>Evaluación</h2>
-        {analysis ? (
-          <>
+        {evaluating ? (
+          <div className="space-y-4">
+            {/* Tarjeta de Progreso de la Evaluación con IA */}
+            <div className="rounded-xl border border-[#0077CC]/20 bg-[#F0F7FD] p-5 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-7 items-center justify-center rounded-full bg-[#0077CC] text-white">
+                    <Loader2 size={15} className="animate-spin" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#0077CC]">Evaluación en progreso</h3>
+                    <p className="text-xs font-medium text-[#0F172A] mt-0.5">{evalSteps[evalStep]}</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-[#0077CC]">{Math.round(((evalStep + 1) / evalSteps.length) * 100)}%</span>
+              </div>
 
-            <ScoreBlock analysis={analysis} studentName={submission.student.name} storageKey={`detail-${analysis.id}`} />
-          </>
+              {/* Barra de Progreso */}
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#D7E9F9]">
+                <div
+                  className="h-full bg-[#0077CC] transition-all duration-700 ease-out rounded-full"
+                  style={{ width: `${((evalStep + 1) / evalSteps.length) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Skeleton de la Evaluación */}
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 space-y-6 animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-64" />
+                </div>
+                <Skeleton className="size-16 rounded-xl" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-[#E2E8F0] p-4 space-y-3">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-4/5" />
+                </div>
+                <div className="rounded-xl border border-[#E2E8F0] p-4 space-y-3">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-4/5" />
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-20 w-full rounded-xl" />
+                <Skeleton className="h-20 w-full rounded-xl" />
+                <Skeleton className="h-20 w-full rounded-xl" />
+              </div>
+            </div>
+          </div>
+        ) : analysis ? (
+          <ScoreBlock analysis={analysis} studentName={submission.student.name} storageKey={`detail-${analysis.id}`} />
         ) : (
           <EmptyState
             title="Aún no evaluada"

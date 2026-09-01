@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, Link2, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { ExternalLink, Link2, Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { ScoreBlock } from '@/components/ScoreBlock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Analysis } from '@/lib/mockdata';
 import { useBackendClient } from '@/hooks/useBackend';
 import { CRITERIA_META, detectPlatform } from '@/lib/data';
@@ -81,9 +82,28 @@ export function EvaluatePage() {
     { id: '1', value: '' },
   ]);
   const [loading, setLoading] = useState(false);
+  const [evalStep, setEvalStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [failedUrls, setFailedUrls] = useState<Array<{ url: string; error: string }>>([]);
   const [results, setResults] = useState<{ combined?: Analysis; individual: Analysis[] } | null>(null);
+
+  const evalSteps = [
+    'Conectando con el servicio de IA y extrayendo conversaciones…',
+    'Analizando patrones de prompting y calidad de interacción…',
+    'Evaluando rúbrica pedagógica y contrastando evidencias…',
+    'Sintetizando fortalezas, áreas de mejora y calificación…',
+  ];
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (loading) {
+      setEvalStep(0);
+      interval = setInterval(() => {
+        setEvalStep((prev) => (prev < evalSteps.length - 1 ? prev + 1 : prev));
+      }, 2400);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     document.title = 'Evaluador de pruebas — AI WorkTrail';
@@ -232,6 +252,65 @@ export function EvaluatePage() {
           </Button>
         </div>
       </form>
+
+      {loading && (
+        <div className="space-y-4 mb-8">
+          {/* Tarjeta de Progreso de la Evaluación con IA */}
+          <div className="rounded-xl border border-[#0077CC]/20 bg-[#F0F7FD] p-5 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-7 items-center justify-center rounded-full bg-[#0077CC] text-white">
+                  <Loader2 size={15} className="animate-spin" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#0077CC]">Evaluación en progreso</h3>
+                  <p className="text-xs font-medium text-[#0F172A] mt-0.5">{evalSteps[evalStep]}</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-[#0077CC]">{Math.round(((evalStep + 1) / evalSteps.length) * 100)}%</span>
+            </div>
+
+            {/* Barra de Progreso */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[#D7E9F9]">
+              <div
+                className="h-full bg-[#0077CC] transition-all duration-700 ease-out rounded-full"
+                style={{ width: `${((evalStep + 1) / evalSteps.length) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Skeleton de la Evaluación */}
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 space-y-6 animate-pulse">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+              <Skeleton className="size-16 rounded-xl" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-[#E2E8F0] p-4 space-y-3">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+              </div>
+              <div className="rounded-xl border border-[#E2E8F0] p-4 space-y-3">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-20 w-full rounded-xl" />
+              <Skeleton className="h-20 w-full rounded-xl" />
+              <Skeleton className="h-20 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-4 text-xs text-[#0F172A]">
