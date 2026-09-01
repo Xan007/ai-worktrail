@@ -66,16 +66,17 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: 'Provide at least one http(s) chat URL' }, 400)
   }
 
-  const extracted = await Promise.all(
-    urls.map(async (url) => {
-      try {
-        const text = await fetchChatText(url)
-        return { url, text, error: null as string | null, is_gem: detectGem(url, text) }
-      } catch (err) {
-        return { url, text: '', error: describeError(err), is_gem: false }
-      }
-    }),
-  )
+  const extracted: Array<{ url: string; text: string; error: string | null; is_gem: boolean }> = []
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i]
+    if (i > 0) await new Promise((res) => setTimeout(res, 1200))
+    try {
+      const text = await fetchChatText(url)
+      extracted.push({ url, text, error: null, is_gem: detectGem(url, text) })
+    } catch (err) {
+      extracted.push({ url, text: '', error: describeError(err), is_gem: false })
+    }
+  }
 
   const results: LinkResult[] = await Promise.all(
     extracted.map(async (item) => {

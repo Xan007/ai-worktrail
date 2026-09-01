@@ -37,10 +37,7 @@ function BackendProviderInner({ children }: { children: ReactNode }) {
     () =>
       createBackendClient(
         () => {
-          if (!isLoaded) return Promise.resolve(null);
-          // clockSkewInSeconds compensates for minor clock differences
-          // between Clerk and Supabase servers (avoids PGRST303 'JWT not yet valid')
-          return getToken({ clockSkewInSeconds: 5 }).catch(() => null);
+          return getToken().catch(() => null);
         },
       ),
     [getToken, isLoaded],

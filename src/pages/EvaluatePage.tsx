@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
+import { ExternalLink, Link2, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { ScoreBlock } from '@/components/ScoreBlock';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import type { Analysis } from '@/lib/mockdata';
 import { useBackendClient } from '@/hooks/useBackend';
-import { CRITERIA_META } from '@/lib/data';
+import { CRITERIA_META, detectPlatform } from '@/lib/data';
 
 interface LinkResultPayload {
   url: string;
@@ -30,6 +34,13 @@ interface LinksResponse {
   results: LinkResultPayload[];
   overall: LinkResultPayload | null;
 }
+
+const PLATFORM_CONFIG: Record<string, { label: string; icon: string }> = {
+  gemini: { label: 'Gemini', icon: '/logos/gemini.svg' },
+  chatgpt: { label: 'ChatGPT', icon: '/logos/chatgpt.svg' },
+  claude: { label: 'Claude', icon: '/logos/claude.svg' },
+  other: { label: 'Otro', icon: '' },
+};
 
 const FALLBACK_BAND = { level: 1, label: '—', description: '' } as Analysis['criteria'][number]['band'];
 
@@ -59,9 +70,16 @@ function toAnalysis(item: LinkResultPayload, idSuffix: string): Analysis {
   };
 }
 
+interface ChatUrlItem {
+  id: string;
+  value: string;
+}
+
 export function EvaluatePage() {
   const client = useBackendClient();
-  const [urls, setUrls] = useState('');
+  const [chats, setChats] = useState<ChatUrlItem[]>([
+    { id: '1', value: '' },
+  ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [failedUrls, setFailedUrls] = useState<Array<{ url: string; error: string }>>([]);
@@ -71,15 +89,27 @@ export function EvaluatePage() {
     document.title = 'Evaluador de pruebas — AI WorkTrail';
   }, []);
 
+  const handleUpdateChat = (id: string, val: string) => {
+    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, value: val } : c)));
+  };
+
+  const handleRemoveChat = (id: string) => {
+    setChats((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleAddChat = () => {
+    if (chats.length >= 8) return;
+    setChats((prev) => [...prev, { id: String(Date.now()), value: '' }]);
+  };
+
+  const validChats = chats
+    .map((c) => c.value.trim())
+    .filter((v) => /^https?:\/\//i.test(v));
+
   const handleEvaluate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const list = urls
-      .split(/[\s,]+/)
-      .map((v) => v.trim())
-      .filter((v) => /^https?:\/\//i.test(v))
-      .slice(0, 8);
-    if (list.length === 0) {
-      setError('Pega al menos una URL válida (http/https).');
+    if (validChats.length === 0) {
+      setError('Ingresa al menos un enlace de chat válido (http/https).');
       return;
     }
     setLoading(true);
@@ -90,198 +120,189 @@ export function EvaluatePage() {
     try {
       const { data, error: invokeError } = await client.functions.invoke<LinksResponse>(
         'evaluate-links',
-        { body: { urls: list } },
+        { body: { urls: validChats } },
       );
       if (invokeError) {
         setError(invokeError.message);
         return;
       }
-    const payload = data as LinksResponse;
-    const failedUrlsList: Array<{ url: string; error: string }> = []
-    const individual: Analysis[] = []
-    let indIdx = 0
-    for (const r of payload.results ?? []) {
-      if (!r.ok) {
-        failedUrlsList.push({ url: r.url, error: r.error ?? 'Error desconocido' })
-      } else if (r.breakdown) {
-        individual.push(toAnalysis(r, `ind-${indIdx++}`))
+      const payload = data as LinksResponse;
+      const failedUrlsList: Array<{ url: string; error: string }> = [];
+      const individual: Analysis[] = [];
+      let indIdx = 0;
+      for (const r of payload.results ?? []) {
+        if (!r.ok) {
+          failedUrlsList.push({ url: r.url, error: r.error ?? 'Error desconocido' });
+        } else if (r.breakdown) {
+          individual.push(toAnalysis(r, `ind-${indIdx++}`));
+        }
       }
-    }
-    setFailedUrls(failedUrlsList);
-    const combined =
-      payload.overall && payload.overall.ok && payload.overall.breakdown
-        ? toAnalysis(payload.overall, 'combined')
-        : undefined;
-    setResults({ combined, individual });
+      setFailedUrls(failedUrlsList);
+      const combined =
+        payload.overall && payload.overall.ok && payload.overall.breakdown
+          ? toAnalysis(payload.overall, 'combined')
+          : undefined;
+      setResults({ combined, individual });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="page-fade" style={{ maxWidth: 1040, margin: '0 auto', padding: '32px 24px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
-          Evaluador de pruebas
-        </h1>
-        <p style={{ fontSize: 14, color: '#334155', margin: 0 }}>
-          Pega URLs para calificar cada chat por separado y todos combinados. No se guarda nada.
+    <main className="page-fade mx-auto max-w-[1040px] px-6 py-8">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold tracking-tight text-[#0F172A]">Evaluador de pruebas</h1>
+        <p className="mt-1 text-xs text-[#64748B]">
+          Ingresa enlaces de chats para calificar cada uno individualmente y de forma combinada sin guardar en base de datos.
         </p>
       </div>
 
-      {/* Input */}
-      <div
-        style={{
-          border: '1px solid #E2E8F0',
-          borderRadius: 8,
-          padding: 20,
-          marginBottom: 32,
-          background: '#FAFBFC',
-        }}
-      >
-        <form onSubmit={handleEvaluate}>
-          <label htmlFor="chat-urls" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#334155', marginBottom: 6 }}>
-            URLs de chats (hasta 8, una por línea)
-          </label>
-          <textarea
-            id="chat-urls"
-            value={urls}
-            onChange={(e) => setUrls(e.target.value)}
-            placeholder={'https://share.gemini.google/...\nhttps://gemini.google.com/share/d/...'}
-            style={{
-              width: '100%',
-              minHeight: 100,
-              border: '1px solid #E2E8F0',
-              borderRadius: 6,
-              padding: '10px 12px',
-              fontSize: 13,
-              fontFamily: 'IBM Plex Mono, monospace',
-              color: '#0F172A',
-              background: '#FFFFFF',
-              outline: 'none',
-              boxSizing: 'border-box',
-              resize: 'vertical',
-              transition: 'border-color 150ms, box-shadow 150ms',
-            }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = '#0077CC'; e.currentTarget.style.boxShadow = '0 0 0 3px #E0F2FE'; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = 'none'; }}
-          />
-          <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button
-              type="submit"
-              disabled={loading || !urls.trim()}
-              style={{
-                height: 38,
-                background: loading ? '#64748B' : '#0077CC',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: 6,
-                fontFamily: 'IBM Plex Sans, system-ui, sans-serif',
-                fontWeight: 600,
-                fontSize: 14,
-                padding: '0 18px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'background 150ms ease-out',
-              }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#0066B3'; }}
-              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#0077CC'; }}
-            >
-              {loading ? 'Evaluando...' : 'Evaluar'}
-            </button>
-            {loading && (
-              <span style={{ fontSize: 13, color: '#64748B' }}>
-                Procesando chats...
-              </span>
-            )}
+      <form onSubmit={handleEvaluate} className="mb-8 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-xs space-y-6">
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-xs font-semibold text-[#0F172A]">Enlaces de chats de IA</Label>
+            <span className="text-[11px] text-[#64748B]">{validChats.length} enlace(s) válido(s)</span>
           </div>
-        </form>
-      </div>
 
-      {/* Results */}
+          <div className="space-y-3">
+            {chats.map((chat, index) => {
+              const platform = detectPlatform(chat.value);
+              const config = PLATFORM_CONFIG[platform] ?? PLATFORM_CONFIG.other;
+              return (
+                <div key={chat.id} className="flex items-center gap-2">
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[#E2E8F0] bg-[#FAFBFC]"
+                    title={config.label}
+                  >
+                    {config.icon ? (
+                      <img src={config.icon} alt={config.label} className="size-4 object-contain" />
+                    ) : (
+                      <Link2 size={15} className="text-[#64748B]" />
+                    )}
+                  </div>
+                  <div className="relative flex-1">
+                    <Input
+                      value={chat.value}
+                      onChange={(event) => handleUpdateChat(chat.id, event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          if (chat.value.trim().length > 0) {
+                            handleAddChat();
+                          }
+                        }
+                      }}
+                      placeholder="https://chatgpt.com/share/... https://claude.ai/share/... o https://gemini.google.com/share/..."
+                      className="h-10 font-mono text-xs"
+                    />
+                  </div>
+                  {chats.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Quitar enlace ${index + 1}`}
+                      onClick={() => handleRemoveChat(chat.id)}
+                      className="text-[#64748B] hover:text-[#B3372F] hover:bg-[#FBEDEB]"
+                    >
+                      <Trash2 size={15} />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {chats.length < 8 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-3 gap-1.5 text-xs text-[#0077CC] hover:text-[#0066B3]"
+              onClick={handleAddChat}
+            >
+              <Plus size={14} /> Añadir otro chat
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 pt-3 border-t border-[#EEF1F6]">
+          <Button type="submit" disabled={loading || validChats.length === 0} className="gap-2 text-xs font-semibold">
+            {loading ? 'Evaluando chats…' : 'Evaluar enlaces'}
+          </Button>
+        </div>
+      </form>
+
       {error && (
-        <div style={{ marginBottom: 24, padding: '10px 14px', background: '#FBEDEB', borderLeft: '3px solid #B3372F', borderRadius: 4, fontSize: 13, color: '#0F172A' }}>
+        <div className="mb-6 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-4 text-xs text-[#0F172A]">
           {error}
         </div>
       )}
 
       {failedUrls.length > 0 && (
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>URLs no procesadas</h2>
-          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-            {failedUrls.map((f, fi) => (
-              <div key={fi} style={{ padding: '10px 14px', background: '#FBF3E7', borderLeft: '3px solid #B45309', borderRadius: 4, fontSize: 13 }}>
-                <span style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#B45309' }}>{f.url}</span>
-                <div style={{ marginTop: 4, color: '#0F172A' }}>{f.error}</div>
-              </div>
-            ))}
-          </div>
+        <div className="mb-6 space-y-2">
+          <h2 className="text-sm font-semibold text-[#0F172A]">Enlaces no procesados</h2>
+          {failedUrls.map((f, fi) => (
+            <div key={fi} className="rounded-md border-l-4 border-[#B45309] bg-[#FBF3E7] p-3 text-xs">
+              <span className="font-mono font-medium text-[#B45309]">{f.url}</span>
+              <div className="mt-1 text-[#0F172A]">{f.error}</div>
+            </div>
+          ))}
         </div>
       )}
 
       {results && (
-        <div>
-          {/* Combined */}
+        <div className="space-y-8">
           {results.combined && (
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', margin: 0 }}>Combinado</h2>
-                <span
-                  style={{
-                    background: '#E0F2FE',
-                    color: '#0077CC',
-                    borderRadius: 4,
-                    padding: '2px 8px',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    border: '1px solid #93C5FD',
-                  }}
-                >
-                  Análisis conjunto
+            <section className="space-y-3">
+              <div className="flex items-center justify-between border-b border-[#EEF1F6] pb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} className="text-[#0077CC]" />
+                  <h2 className="text-sm font-bold text-[#0F172A]">Evaluación consolidada</h2>
+                </div>
+                <span className="rounded bg-[#E0F2FE] px-2 py-0.5 font-mono text-[11px] font-semibold text-[#0077CC]">
+                  {validChats.length} chats
                 </span>
               </div>
-              <div style={{ border: '2px solid #0077CC', borderRadius: 8, padding: 0 }}>
-                <ScoreBlock
-                  analysis={results.combined}
-                  storageKey="evaluate-combined"
-                />
-              </div>
-            </div>
+              <ScoreBlock analysis={results.combined} storageKey="evaluate-combined" />
+            </section>
           )}
 
-          {/* Individual */}
           {results.individual.length > 0 && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>
-                Chats individuales
+            <section className="space-y-4">
+              <h2 className="text-sm font-bold text-[#0F172A] border-b border-[#EEF1F6] pb-2">
+                Evaluaciones individuales
               </h2>
-              {results.individual.map((a, i) => (
-                <ScoreBlock
-                  key={a.id}
-                  analysis={a}
-                  storageKey={`evaluate-individual-${i}`}
-                />
-              ))}
-            </div>
+              <div className="space-y-6">
+                {results.individual.map((a, i) => (
+                  <div key={a.id} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-semibold text-[#64748B]">
+                        Chat {i + 1}
+                      </span>
+                      <a
+                        href={a.submission_id}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-mono text-xs text-[#0077CC] hover:underline"
+                      >
+                        <span className="truncate max-w-[280px]">{a.submission_id}</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    </div>
+                    <ScoreBlock analysis={a} storageKey={`evaluate-individual-${i}`} />
+                  </div>
+                ))}
+              </div>
+            </section>
           )}
         </div>
       )}
 
       {!results && !loading && (
-        <div
-          style={{
-            border: '1px dashed #E2E8F0',
-            borderRadius: 8,
-            padding: '40px 24px',
-            textAlign: 'center',
-          }}
-        >
-          <p style={{ fontSize: 14, color: '#334155', fontWeight: 500, margin: 0 }}>
-            Pega URLs arriba y presiona "Evaluar"
-          </p>
-          <p style={{ fontSize: 13, color: '#64748B', margin: '4px 0 0' }}>
-            Los resultados aparecerán aquí sin guardarse.
-          </p>
+        <div className="rounded-xl border border-dashed border-[#E2E8F0] p-10 text-center bg-white/50">
+          <p className="text-xs font-semibold text-[#334155]">Ingresa enlaces arriba y presiona "Evaluar enlaces"</p>
+          <p className="mt-1 text-[11px] text-[#64748B]">Los resultados detallados se presentarán aquí con el desglose de criterios.</p>
         </div>
       )}
     </main>

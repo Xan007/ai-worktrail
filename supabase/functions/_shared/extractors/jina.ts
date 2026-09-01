@@ -27,15 +27,14 @@ export async function jinaFetch(
     'Content-Type': 'application/json',
     'X-Engine': 'browser',
     'X-Return-Format': 'markdown',
-    // OPTIMIZATION: Strip all images (saves ~30% tokens)
+    // OPTIMIZATION: Strip all images (saves ~30-50% tokens)
     'X-Retain-Images': 'false',
-    // OPTIMIZATION: Don't create links summary section
+    // OPTIMIZATION: Don't create links or images summary sections
     'X-With-Links-Summary': 'none',
-    // OPTIMIZATION: Don't create images summary section
     'X-With-Images-Summary': 'none',
   }
 
-  // Add target selector to extract only relevant content
+  // Add target selector to extract only user content
   if (options.targetSelector) {
     headers['X-Target-Selector'] = options.targetSelector
   }
@@ -44,8 +43,7 @@ export async function jinaFetch(
   if (options.removeSelector) {
     headers['X-Remove-Selector'] = options.removeSelector
   } else {
-    // Default: remove common noise elements
-    headers['X-Remove-Selector'] = 'nav, footer, aside, header, button, [role="toolbar"], [role="navigation"]'
+    headers['X-Remove-Selector'] = 'nav, footer, aside, header, button, [role="toolbar"], [role="navigation"], [data-testid="sidebar"]'
   }
 
   // Wait for dynamic content if needed

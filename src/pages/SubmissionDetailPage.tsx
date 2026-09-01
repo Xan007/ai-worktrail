@@ -26,30 +26,51 @@ interface ChatRowProps {
 
 function ChatRow({ url, platform, gemStatus, extractionError, prompts, chatIndex }: ChatRowProps) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const handleFocus = (e: CustomEvent<{ chat: number; message: number }>) => {
+      if (e.detail.chat === chatIndex + 1) {
+        setOpen(true);
+        setTimeout(() => {
+          const el = document.getElementById(`prompt-${chatIndex + 1}-${e.detail.message}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('bg-[#E0F2FE]/50', 'transition-colors', 'duration-500');
+            setTimeout(() => {
+              el.classList.remove('bg-[#E0F2FE]/50');
+            }, 2500);
+          }
+        }, 100);
+      }
+    };
+    window.addEventListener('awt:focus-prompt', handleFocus as EventListener);
+    return () => window.removeEventListener('awt:focus-prompt', handleFocus as EventListener);
+  }, [chatIndex]);
+
   return (
-    <div className="mb-3 rounded-lg border border-[#EEF1F6] bg-[#FAFBFC] p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex min-w-0 items-center gap-1.5 font-mono text-xs font-medium text-[#0077CC] hover:underline"
-        >
-          <span className="truncate">{url.length > 50 ? url.slice(0, 50) + '…' : url}</span>
-          <ExternalLink size={12} className="shrink-0" />
-        </a>
+    <div className="mb-3 rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <PlatformChip platform={platform} />
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="truncate font-mono text-xs font-medium text-[#0077CC] hover:underline max-w-[320px] sm:max-w-[480px]"
+          >
+            {url}
+          </a>
+        </div>
 
         <div className="flex items-center gap-3">
-          <PlatformChip platform={platform} />
-
           {prompts.length > 0 && (
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#0077CC] hover:text-[#0066B3]"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white px-2.5 py-1 text-xs font-medium text-[#334155] shadow-2xs hover:bg-[#F8FAFC] transition-colors"
             >
               {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-              Ver prompts ({prompts.length})
+              {open ? 'Ocultar prompts' : `Ver prompts (${prompts.length})`}
             </button>
           )}
         </div>
@@ -66,13 +87,17 @@ function ChatRow({ url, platform, gemStatus, extractionError, prompts, chatIndex
       )}
 
       {open && prompts.length > 0 && (
-        <div className="mt-3 space-y-2 rounded-md border border-[#EEF1F6] bg-[#F8FAFC] p-3">
+        <div className="mt-4 border-t border-[#EEF1F6] pt-3 divide-y divide-[#F1F5F9]">
           {prompts.map((prompt, promptPos) => (
-            <div key={`prompt-${chatIndex}-${prompt.slice(0, 40)}-${promptPos}`} className="flex items-start gap-2.5">
-              <span className="shrink-0 rounded border border-[#E2E8F0] bg-white px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#64748B]">
-                [C{chatIndex + 1}-M{promptPos + 1}]
+            <div
+              key={`prompt-${chatIndex}-${prompt.slice(0, 40)}-${promptPos}`}
+              id={`prompt-${chatIndex + 1}-${promptPos + 1}`}
+              className="flex items-start gap-3.5 py-3 first:pt-2 last:pb-1 rounded-md px-2 -mx-2 transition-colors duration-300"
+            >
+              <span className="shrink-0 font-mono text-[11px] font-semibold text-[#94A3B8] w-5 text-right pt-0.5">
+                {String(promptPos + 1).padStart(2, '0')}
               </span>
-              <div className="flex-1 rounded border border-[#EEF1F6] bg-white p-2.5 text-xs text-[#0F172A] shadow-2xs">
+              <div className="min-w-0 flex-1">
                 <PromptText text={prompt} />
               </div>
             </div>
@@ -200,102 +225,67 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
         ]}
       />
 
-{/* Cabecera de la entrega - Tarjeta de resumen */}
-      <section className="mb-6 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
-        <div style={{ height: 6, background: statusMeta.strip }} />
-        <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-5 min-w-0 flex-1">
-            {/* Anillo de progreso circular */}
-            <div className="relative flex size-24 shrink-0 items-center justify-center">
-              <svg className="size-full -rotate-90" viewBox="0 0 36 36">
-                {/* Círculo base */}
-                <path
-                  className="text-[#E5EAF1]"
-                  strokeWidth="3.5"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.08 a 15.92 15.92 0 0 1 0 31.83 a 15.92 15.92 0 0 1 0 -31.83"
-                />
-                {/* Círculo de progreso coloreado */}
-                {analysis != null && (
-                  <path
-                    style={{
-                      stroke: analysis.score >= 80 ? '#1F7A4D' : analysis.score >= 60 ? '#B45309' : '#B3372F',
-                    }}
-                    strokeDasharray={`${analysis.score}, 100`}
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                  d="M18 2.08 a 15.92 15.92 0 0 1 0 31.83 a 15.92 15.92 0 0 1 0 -31.83"
-                  />
-                )}
-              </svg>
-              <div className="absolute flex flex-col items-center justify-center text-center">
+      <section className="mb-6 rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 shadow-2xs">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1 min-w-0">
+            <h1 className="truncate text-lg font-bold tracking-tight text-[#0F172A]">
+              {submission.student.name}
+            </h1>
+
+            <p className="text-xs text-[#64748B]">
+              Entregado el {formatDate(submission.submitted_at)}
+              {task.due_at && (
                 <span
-                  style={{
-                    color: analysis == null ? '#64748B' : analysis.score >= 80 ? '#1F7A4D' : analysis.score >= 60 ? '#B45309' : '#B3372F',
-                  }}
-                  className="font-mono text-2xl font-extrabold leading-none"
+                  className={
+                    new Date(submission.submitted_at) > new Date(task.due_at)
+                      ? ' text-[#B3372F] font-medium'
+                      : ' text-[#1F7A4D] font-medium'
+                  }
                 >
-                  {analysis?.score ?? '—'}
+                  {new Date(submission.submitted_at) > new Date(task.due_at)
+                    ? ' (con retraso)'
+                    : ' (a tiempo)'}
                 </span>
-                {analysis != null && (
-                  <span className="text-[10px] font-semibold text-[#64748B]">/100</span>
-                )}
-              </div>
-            </div>
-
-            {/* Info del estudiante y metadata */}
-            <div className="min-w-0 flex-1 space-y-2">
-              <h1 className="truncate text-xl font-bold tracking-tight text-[#0F172A]">
-                {submission.student.name}
-              </h1>
-
-              <div>
-                <span
-                  style={{
-                    background: analysis ? getProfileBg(analysis.profile) : '#F0F3F8',
-                    color: analysis ? getProfileColor(analysis.profile) : '#64748B',
-                  }}
-                  className="inline-block rounded px-2.5 py-1 text-xs font-semibold"
-                >
-                  {analysis ? `${statusMeta.label} · ${getProfileLabel(analysis.profile)}` : 'Pendiente de evaluación'}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#64748B]">
-                <span>Versión {submission.version}</span>
-                <span>·</span>
-                <span>Entregada el {formatDate(submission.submitted_at)}</span>
-                <span>·</span>
-                <span>{submission.chats.length} chat(s)</span>
-                {task.is_group_task && (
-                  <>
-                    <span>·</span>
-                    <span>Entrega grupal</span>
-                  </>
-                )}
-              </div>
-            </div>
+              )}
+            </p>
           </div>
 
-          {isTeacher && (
-            <div className="shrink-0 self-start sm:self-center">
+          <div className="flex items-center gap-4 shrink-0">
+            {analysis != null && (
+              <div className="text-right">
+                <span
+                  style={{
+                    color:
+                      analysis.score >= 80
+                        ? '#1F7A4D'
+                        : analysis.score >= 60
+                        ? '#B45309'
+                        : '#B3372F',
+                  }}
+                  className="font-mono text-2xl font-bold leading-none block"
+                >
+                  {analysis.score}
+                  <span className="text-xs font-normal text-[#94A3B8]">/100</span>
+                </span>
+              </div>
+            )}
+
+            {isTeacher && (
               <button
                 type="button"
                 onClick={() => void handleEvaluate()}
                 disabled={evaluating}
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-[#0077CC] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#0066B3] disabled:opacity-75"
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-[#0077CC] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#0066B3] disabled:opacity-75 shadow-2xs"
               >
                 {evaluating && <Loader2 size={14} className="animate-spin" />}
                 {evaluating ? 'Evaluando…' : analysis ? 'Re-evaluar' : 'Evaluar entrega'}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
         {error && (
-          <div className="mx-6 mb-5 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-3 text-xs text-[#0F172A]">
+          <div className="mt-4 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-3 text-xs text-[#0F172A]">
             {error}
           </div>
         )}

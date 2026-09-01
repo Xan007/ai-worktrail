@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ChevronRight, Eye, ExternalLink, Pencil, Settings, Trash2 } from 'lucide-react';
+import { ChevronRight, Eye, ExternalLink, Loader2, Pencil, Search, Settings, Sparkles, Trash2 } from 'lucide-react';
 import { PlatformChip, StatusChip } from '@/components/meta';
 import { useUser } from '@clerk/clerk-react';
 import { AppBreadcrumb } from '@/components/AppBreadcrumb';
@@ -13,31 +13,35 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBackendClient } from '@/hooks/useBackend';
 import { useCourseRole } from '@/hooks/useRoleMode';
-import { createTask, deleteSubmission, deleteTask, getSubmissionDetail, getTaskBundle, invalidateTaskBundleCache, updateTask, type TaskBundle } from '@/lib/data';
+import { createTask, deleteSubmission, deleteTask, evaluateSubmission, getSubmissionDetail, getTaskBundle, invalidateTaskBundleCache, updateTask, type TaskBundle, type SubmissionView } from '@/lib/data';
 import { showError, showSuccess, showUndoDeleteTask } from '@/lib/toast';
-import type { AIEvaluationMode, Analysis, GroupGradingMode, Submission, Task } from '@/lib/mockdata';
+import type { AIEvaluationMode, Analysis, GroupGradingMode, Submission, Task, TaskStatus } from '@/lib/mockdata';
 import { formatDate } from '@/lib/mockdata';
 
 const PREFETCH_DEBOUNCE_MS = 200;
 const dueDateFormatterLong = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
 interface SubmissionsListSectionProps {
-  latestByStudent: Submission[];
+  latestByStudent: SubmissionView[];
   isTeacher: boolean;
-  taskStatus: string;
-  user: { id: string } | null | undefined;
+  taskStatus: TaskStatus;
+  task: Task;
+  user: ReturnType<typeof useUser>['user'];
   cid: string | undefined;
   tid: string | undefined;
   client: ReturnType<typeof useBackendClient>;
   hoverTimers: React.RefObject<Map<string, ReturnType<typeof setTimeout>>>;
   getAnalysis: (subId: string) => Analysis | undefined;
   onDeleteClick: (subId: string) => void;
+  onBulkEvaluate?: () => void;
+  evaluatingBulk?: boolean;
 }
 
 function SubmissionsListSection({
   latestByStudent,
   isTeacher,
   taskStatus,
+  task,
   user,
   cid,
   tid,
@@ -45,7 +49,11 @@ function SubmissionsListSection({
   hoverTimers,
   getAnalysis,
   onDeleteClick,
+  onBulkEvaluate,
+  evaluatingBulk,
 }: SubmissionsListSectionProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const handleMouseEnter = (subId: string) => {
     if (hoverTimers.current?.has(subId)) return;
     const timer = setTimeout(() => {
@@ -63,6 +71,19 @@ function SubmissionsListSection({
     }
   };
 
+  const filteredSubmissions = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return latestByStudent;
+    return latestByStudent.filter((sub) => sub.student.name.toLowerCase().includes(q));
+  }, [latestByStudent, searchQuery]);
+
+  const unevaluatedCount = useMemo(() => {
+    return latestByStudent.filter((sub) => {
+      const a = getAnalysis(sub.id);
+      return !a || a.score == null;
+    }).length;
+  }, [latestByStudent, getAnalysis]);
+
   if (latestByStudent.length === 0) {
     return (
       <EmptyState
@@ -73,71 +94,123 @@ function SubmissionsListSection({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
-      {latestByStudent.map((sub) => {
-        const analysis = getAnalysis(sub.id);
-        const isOwn = sub.student.id === user?.id;
-        const canDelete = isTeacher || (isOwn && taskStatus === 'open');
-        return (
-          <div
-            key={sub.id}
-            className="flex items-center gap-4 border-b border-[#E2E8F0] px-5 py-4 last:border-0"
-            onMouseEnter={() => handleMouseEnter(sub.id)}
-            onMouseLeave={() => handleMouseLeave(sub.id)}
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                {isTeacher && (
-                  <span className="text-[14px] font-semibold text-[#0F172A]">{sub.student.name}</span>
-                )}
-                <StatusChip analysis={analysis ?? null} />
-                {sub.chats.map((chat) => (
-                  <PlatformChip key={chat.id} platform={chat.platform} />
-                ))}
-              </div>
-              <div className="mt-1 text-xs text-[#64748B]">
-                {formatDate(sub.submitted_at)}
-                {sub.chats.length > 0 && ` · ${sub.chats.length} chat${sub.chats.length > 1 ? 's' : ''}`}
-              </div>
-            </div>
+    <div className="space-y-4">
+      {/* Barra de control para el docente: Búsqueda y Evaluación masiva */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={14} className="pointer-events-none absolute left-3 top-3 text-[#64748B]" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por estudiante..."
+            className="h-9 pl-8 text-xs bg-white"
+          />
+        </div>
 
-            <div className="flex shrink-0 items-center gap-2">
-              {sub.chats.map((chat) => (
-                <a
-                  key={chat.id}
-                  href={chat.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Abrir chat en ${chat.platform}`}
-                  className="inline-flex items-center gap-1 text-xs text-[#0077CC] hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink size={13} />
-                </a>
-              ))}
-
-              <Link
-                to={`/courses/${cid}/tasks/${tid}/submissions/${sub.id}`}
-                className="inline-flex items-center gap-1 rounded-md border border-[#E2E8F0] px-2.5 py-1 text-xs text-[#334155] hover:bg-[#F0F3F8]"
-              >
-                <ChevronRight size={13} />
-                Ver
-              </Link>
-
-              {canDelete && (
-                <button
-                  type="button"
-                  onClick={() => onDeleteClick(sub.id)}
-                  className="inline-flex items-center rounded-md border border-[#E2E8F0] p-1.5 text-[#64748B] hover:border-[#B3372F] hover:text-[#B3372F]"
-                  aria-label="Eliminar entrega"
-                >
-                  <Trash2 size={13} />
-                </button>
+        {isTeacher && onBulkEvaluate && (
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={evaluatingBulk || unevaluatedCount === 0}
+              onClick={onBulkEvaluate}
+              className="gap-1.5 text-xs text-[#0077CC] hover:text-[#0066B3]"
+            >
+              {evaluatingBulk ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> Evaluando todas…
+                </>
+              ) : (
+                <>
+                  <Sparkles size={13} />
+                  Evaluar pendientes ({unevaluatedCount})
+                </>
               )}
-            </div>
+            </Button>
           </div>
-        );
-      })}
+        )}
+      </div>
+
+      {filteredSubmissions.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-[#E2E8F0] p-8 text-center bg-white">
+          <p className="text-xs font-semibold text-[#334155]">No se encontraron estudiantes con "{searchQuery}"</p>
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="mt-1 text-xs text-[#0077CC] hover:underline"
+          >
+            Limpiar filtro
+          </button>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs">
+          <div className="divide-y divide-[#EEF1F6]">
+            {filteredSubmissions.map((sub) => {
+              const analysis = getAnalysis(sub.id);
+              const isOwn = sub.student.id === user?.id;
+              const canDelete = isTeacher || (isOwn && taskStatus === 'open');
+
+              return (
+                <div
+                  key={sub.id}
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-[#F8FAFD]"
+                  onMouseEnter={() => handleMouseEnter(sub.id)}
+                  onMouseLeave={() => handleMouseLeave(sub.id)}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {isTeacher && (
+                        <span className="text-xs font-semibold text-[#0F172A]">{sub.student.name}</span>
+                      )}
+                      <StatusChip analysis={analysis ?? null} />
+                      <div className="flex items-center gap-1">
+                        {sub.chats.map((chat) => (
+                          <PlatformChip key={chat.id} platform={chat.platform} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-[#64748B]">
+                      <span>{formatDate(sub.submitted_at)}</span>
+                      <span>·</span>
+                      <span>{sub.chats.length} chat{sub.chats.length > 1 ? 's' : ''} aportado{sub.chats.length > 1 ? 's' : ''}</span>
+                      {task.is_group_task && (
+                        <>
+                          <span>·</span>
+                          <span className="rounded bg-[#F0F3F8] px-1.5 py-0.2 text-[10px] font-medium text-[#334155]">
+                            Grupo
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Link
+                      to={`/courses/${cid}/tasks/${tid}/submissions/${sub.id}`}
+                      className="inline-flex items-center gap-1 rounded-md border border-[#E2E8F0] bg-white px-2.5 py-1 text-xs font-medium text-[#334155] shadow-2xs hover:bg-[#F0F3F8] transition-colors"
+                    >
+                      Ver entrega
+                      <ChevronRight size={13} />
+                    </Link>
+
+                    {canDelete && (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteClick(sub.id)}
+                        className="inline-flex items-center rounded-md border border-[#E2E8F0] p-1.5 text-[#64748B] hover:border-[#B3372F] hover:bg-[#FBEDEB] hover:text-[#B3372F] transition-colors"
+                        aria-label="Eliminar entrega"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -346,7 +419,7 @@ export function TaskDetailPage() {
 
   const latestByStudent = useMemo(() => {
     const seen = new Set<string>();
-    const out: Submission[] = [];
+    const out: SubmissionView[] = [];
     for (const s of submissions) {
       if (!seen.has(s.student.id)) {
         seen.add(s.student.id);
@@ -387,6 +460,35 @@ export function TaskDetailPage() {
       setDeleteId(null);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const [evaluatingBulk, setEvaluatingBulk] = useState(false);
+
+  const handleBulkEvaluate = async () => {
+    if (!tid || evaluatingBulk) return;
+    const unevaluated = latestByStudent.filter((sub) => {
+      const a = getAnalysis(sub.id);
+      return !a || a.score == null;
+    });
+    if (unevaluated.length === 0) return;
+
+    setEvaluatingBulk(true);
+    let successCount = 0;
+    try {
+      for (const sub of unevaluated) {
+        try {
+          await evaluateSubmission(client, sub.id, tid);
+          successCount++;
+        } catch {}
+      }
+      invalidateTaskBundleCache(tid);
+      await load();
+      showSuccess(`Se evaluaron ${successCount} entrega(s) exitosamente.`);
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setEvaluatingBulk(false);
     }
   };
 
@@ -549,6 +651,7 @@ export function TaskDetailPage() {
         latestByStudent={latestByStudent}
         isTeacher={isTeacher}
         taskStatus={task.status}
+        task={task}
         user={user}
         cid={cid}
         tid={tid}
@@ -556,6 +659,8 @@ export function TaskDetailPage() {
         hoverTimers={hoverTimers}
         getAnalysis={getAnalysis}
         onDeleteClick={setDeleteId}
+        onBulkEvaluate={handleBulkEvaluate}
+        evaluatingBulk={evaluatingBulk}
       />
 
       <Dialog open={confirmDeleteTaskOpen} onOpenChange={setConfirmDeleteTaskOpen}>

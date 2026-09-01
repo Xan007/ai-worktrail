@@ -1,4 +1,4 @@
-declare const Deno: {
+﻿declare const Deno: {
   env: { get(key: string): string | undefined }
   serve: (handler: (req: Request) => Promise<Response> | Response) => void
 }
@@ -17,7 +17,6 @@ import {
   normalizeGemUrl,
   type ApprovedGem,
   type EvaluationBreakdown,
-  type Platform,
   type SubmissionChat,
 } from '../_shared/evaluation-core.ts'
 
@@ -88,9 +87,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: callerProfile } = await adminClient
     .from('users').select('role').eq('id', callerId)
-    .maybeSingle();
-  const isStaff = callerProfile?.role === 'teacher' || callerProfile?.role === 'monitor';
-  const isTeacher = course.teacher_id === callerId || isStaff;
+    .maybeSingle()
+  const isStaff = callerProfile?.role === 'teacher' || callerProfile?.role === 'monitor'
+  const isTeacher = course.teacher_id === callerId || isStaff
   const isOwnerStudent = submission.student_id === callerId
   const isGroupMember = await (async () => {
     if (!submission.group_id) return false
@@ -129,31 +128,38 @@ Deno.serve(async (req: Request) => {
     approvedByUrl.set(normalizeGemUrl(gem.gem_url), gem)
   }
 
-  const enrichedChats: Array<SubmissionChat & { extracted_text: string; extraction_error: string | null }> = await Promise.all(
-    (chats as SubmissionChat[]).map(async (chat) => {
-      let text = ''
-      let error: string | null = null
-      try {
-        text = await fetchChatText(chat.chat_url)
-      } catch (err) {
-        error = describeError(err)
-      }
-      const isGem = detectGem(chat.chat_url, text)
-      const matchedApproved = isGem ? approvedByUrl.get(normalizeGemUrl(chat.chat_url)) ?? null : null
+  const enrichedChats: Array<SubmissionChat & { extracted_text: string; extraction_error: string | null }> = []
+  for (let i = 0; i < (chats as SubmissionChat[]).length; i++) {
+    const chat = (chats as SubmissionChat[])[i]
+    if (i > 0) await new Promise((res) => setTimeout(res, 1200))
+    let text = ''
+    let error: string | null = null
+    try {
+      text = await fetchChatText(chat.chat_url)
+    } catch (err) {
+      error = describeError(err)
+    }
+    const isGem = detectGem(chat.chat_url, text)
+    const matchedApproved = isGem ? approvedByUrl.get(normalizeGemUrl(chat.chat_url)) ?? null : null
 
-      const update: Record<string, unknown> = {
-        is_gem: isGem,
-        extracted_text: error ? null : text,
-        extraction_error: error,
-      }
-      if (matchedApproved) update.approved_gem_id = matchedApproved.id
-      else if (isGem) update.approved_gem_id = null
+    const update: Record<string, unknown> = {
+      is_gem: isGem,
+      extracted_text: error ? null : text,
+      extraction_error: error,
+    }
+    if (matchedApproved) update.approved_gem_id = matchedApproved.id
+    else if (isGem) update.approved_gem_id = null
 
-      await adminClient.from('submission_chats').update(update).eq('id', chat.id)
+    await adminClient.from('submission_chats').update(update).eq('id', chat.id)
 
-      return { ...chat, is_gem: isGem, approved_gem_id: matchedApproved?.id ?? null, extracted_text: text, extraction_error: error }
-    }),
-  )
+    enrichedChats.push({
+      ...chat,
+      is_gem: isGem,
+      approved_gem_id: matchedApproved?.id ?? null,
+      extracted_text: text,
+      extraction_error: error,
+    })
+  }
 
   if (enrichedChats.every((c) => c.extraction_error || !c.extracted_text)) {
     return jsonResponse(
@@ -187,39 +193,53 @@ Deno.serve(async (req: Request) => {
     breakdown: EvaluationBreakdown
   }> = []
 
-  const bucketList = Array.from(buckets.values())
-  let evaluated: typeof analyses
-  try {
-    evaluated = await Promise.all(
-      bucketList.map(async (bucket) => {
-        const composed = composeChatsText(bucket.chats)
-        const result = await evaluateWithGemini(composed.text, composed.messageCounts)
-        return {
-          submission_id: payload.submission_id,
-          student_id: bucket.student_id,
-          score: result.score,
-          justification: result.breakdown.summary,
-          flagged: result.score <= FLAG_THRESHOLD,
-          breakdown: result.breakdown,
-        }
-      }),
+  for (const bucket of buckets.values()) {
+    const usable = bucket.chats.filter((c) => !c.extraction_error && c.extracted_text)
+    if (usable.length === 0) continue
+
+    const composed = composeChatsText(
+      bucket.chats.map((c) => ({
+        chat_url: c.chat_url,
+        platform: c.platform,
+        is_gem: c.is_gem,
+        extraction_error: c.extraction_error,
+        extracted_text: c.extracted_text,
+      })),
     )
-  } catch (err) {
-    return jsonResponse({ error: `Gemini evaluation failed: ${describeError(err)}` }, 502)
+
+    try {
+      const result = await evaluateWithGemini(composed.text, composed.messageCounts)
+      analyses.push({
+        submission_id: payload.submission_id,
+        student_id: bucket.student_id,
+        score: result.score,
+        justification: result.breakdown.summary,
+        flagged: result.score <= FLAG_THRESHOLD,
+        breakdown: result.breakdown,
+      })
+    } catch (err) {
+      return jsonResponse({ error: `Evaluation failed for ${bucket.label}: ${describeError(err)}` }, 502)
+    }
   }
-  analyses.push(...evaluated)
+
+  if (analyses.length === 0) {
+    return jsonResponse({ error: 'No usable chat contents to evaluate' }, 422)
+  }
 
   await adminClient.from('analysis').delete().eq('submission_id', payload.submission_id)
+
   const { error: insertError } = await adminClient.from('analysis').insert(analyses)
   if (insertError) {
-    return jsonResponse({ error: `Failed to persist analysis: ${describeError(insertError)}` }, 500)
+    return jsonResponse({ error: `Failed to save analysis: ${describeError(insertError)}` }, 500)
   }
 
+  const avgScore = Math.round(analyses.reduce((acc, a) => acc + a.score, 0) / analyses.length)
+  const anyFlagged = analyses.some((a) => a.flagged)
+
   return jsonResponse({
-    submission_id: payload.submission_id,
-    chats: enrichedChats.map((c) => ({ id: c.id, is_gem: c.is_gem, approved_gem_id: c.approved_gem_id, extraction_error: c.extraction_error })),
-    analyses,
+    ok: true,
+    score: avgScore,
+    is_flagged: anyFlagged,
+    analyses_count: analyses.length,
   })
 })
-
-export type { Platform }

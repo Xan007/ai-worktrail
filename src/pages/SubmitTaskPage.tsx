@@ -84,6 +84,14 @@ function ChatUrlListForm({
                       <Input
                         value={chat.value}
                         onChange={(event) => onUpdateChat(chat.id, event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault();
+                            if (chat.value.trim().length > 0) {
+                              onAddChat();
+                            }
+                          }
+                        }}
                         placeholder="https://gemini.google.com/share/... o cualquier enlace de chat"
                         className="h-10 pl-9 font-mono text-xs"
                       />

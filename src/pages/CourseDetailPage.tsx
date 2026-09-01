@@ -470,11 +470,14 @@ export function CourseDetailPage() {
   const handleInviteOpenChange = (open: boolean) => {
     setInviteModalOpen(open);
     if (open && course) {
-      // Mark invited step in DB then refresh local state
-      client.rpc('fn_mark_onboarding_invited').then(() => refreshChecklist()).catch(() => {});
+      void (async () => {
+        try {
+          await client.rpc('fn_mark_onboarding_invited');
+          await refreshChecklist();
+        } catch {}
+      })();
     }
     if (!open) {
-      // Refresh enrollment counts when modal closes
       void refreshStudents();
     }
   };
@@ -555,9 +558,10 @@ export function CourseDetailPage() {
   const refreshChecklist = useCallback(async () => {
     if (!user) return;
     const { data } = await client.rpc('fn_get_onboarding_checklist_state').maybeSingle();
-    if (data) {
-      setChecklistDismissed(data.dismissed ?? false);
-      setChecklistHasInvited(data.has_invited ?? false);
+    const state = data as { dismissed?: boolean; has_invited?: boolean } | null;
+    if (state) {
+      setChecklistDismissed(state.dismissed ?? false);
+      setChecklistHasInvited(state.has_invited ?? false);
     }
   }, [user?.id, client]);
   useEffect(() => { void refreshChecklist(); }, [refreshChecklist]);

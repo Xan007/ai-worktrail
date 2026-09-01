@@ -1,53 +1,71 @@
-// Corte de turnos del estudiante a partir del texto extraído por la Edge Function.
-// Espejo client-side de la lógica en supabase/functions/_shared/evaluation-core.ts,
-// para numerar los prompts con los mismos marcadores [CN-MK] que cita el desglose.
+const SYSTEM_NOISE_RE =
+  /^(Title:|URL Source:|Markdown Content:|Images:|Links\/Buttons:|Warning:|This page does not seem to contain|Responses below were generated|Las respuestas que aparecen a continuación|Google apps|Sign in\s*$|Report\s+http|Copy public link|Gemini may display inaccurate|Show code|Show thinking|Show more|(Mostrar|Ver) c(ó|o)digo|\[(About Gemini|FAQ|Google Privacy Policy|Google Terms of Service|Sign in|https?:))/i;
 
-const TURN_SPLIT_RE = /(?:^|\n)[^\S\n]*(?:You said|Has dicho):?[^\S\n]*(?:\n|$)/i;
-
-const BOILERPLATE_LINE_RE =
-  /^(Title:|URL Source:|Markdown Content:|Copy public link|Gemini may display inaccurate|Show code|Show thinking|Show more|(Mostrar|Ver) c(ó|o)digo|Responses below were generated|Las respuestas que aparecen a continuación|Google apps|Sign in\s*$|Report\s+http|\[(About Gemini|FAQ|Google Privacy Policy|Google Terms of Service|Sign in|https?:))/i;
-
-function cleanExtraction(rawText: string): string {
-  return rawText
+function cleanTurnText(text: string): string {
+  return text
     .split('\n')
-    .filter((line) => !BOILERPLATE_LINE_RE.test(line.trim()))
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return false;
+      if (SYSTEM_NOISE_RE.test(trimmed)) return false;
+      if (/^!\[[^\]]*\]\([^)]*\)$/.test(trimmed)) return false;
+      if (/^-\s*!\[[^\]]*\]/i.test(trimmed)) return false;
+      if (/^-\s*\[Learn more/i.test(trimmed)) return false;
+      return true;
+    })
     .join('\n')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, '[adjunto]');
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .trim();
 }
 
 export function splitIntoMessages(rawText: string): string[] {
-  const cleaned = cleanExtraction(rawText);
+  const isGemini = /#{1,6}\s*(?:You said|Has dicho)\b/i.test(rawText);
 
-  // Corta en cada línea que sea exactamente el marcador de turno,
-  // tolerando prefijos de heading markdown (##### You said).
-  const markerRe = /^\s*(?:#{1,6}\s*)?(?:You said|Has dicho)\b:?/i;
-  const turns: string[] = [];
-  let current: string[] = [];
-  let started = false;
+  if (isGemini) {
+    const lines = rawText.split('\n');
+    const turns: string[] = [];
+    let currentLines: string[] = [];
+    let inTurn = false;
 
-  for (const rawLine of cleaned.split('\n')) {
-    const line = rawLine.trimEnd();
-    if (markerRe.test(line)) {
-      if (started) {
-        const t = current.join('\n').trim();
-        if (t) turns.push(t);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (/^#{1,6}\s*(?:You said|Has dicho)\b/i.test(trimmed)) {
+        if (inTurn && currentLines.length > 0) {
+          const cleaned = cleanTurnText(currentLines.join('\n'));
+          if (cleaned) turns.push(cleaned);
+        }
+        inTurn = true;
+        currentLines = [];
+        continue;
       }
-      started = true;
-      const rest = line.replace(markerRe, '').trim();
-      current = rest ? [rest] : [];
-      continue;
+      if (inTurn) {
+        currentLines.push(line);
+      }
     }
-    if (started) current.push(line);
-  }
-  if (started) {
-    const t = current.join('\n').trim();
-    if (t) turns.push(t);
+    if (inTurn && currentLines.length > 0) {
+      const cleaned = cleanTurnText(currentLines.join('\n'));
+      if (cleaned) turns.push(cleaned);
+    }
+    if (turns.length > 0) return turns;
   }
 
-  if (turns.length > 0) return turns;
+  const lines = rawText.split('\n');
+  const filtered = lines.filter((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return true;
+    if (SYSTEM_NOISE_RE.test(trimmed)) return false;
+    if (/^!\[[^\]]*\]\([^)]*\)$/.test(trimmed)) return false;
+    if (/^-\s*!\[[^\]]*\]/i.test(trimmed)) return false;
+    if (/^-\s*\[Learn more/i.test(trimmed)) return false;
+    return true;
+  });
 
-  return cleaned
-    .split(/\n\s*\n/)
-    .map((block) => block.trim())
-    .filter((block) => block.length > 0);
+  const blocks = filtered
+    .join('\n')
+    .trim()
+    .split(/\n\s*\n+/)
+    .map((b) => b.trim())
+    .filter((b) => b.length > 0 && !SYSTEM_NOISE_RE.test(b));
+
+  return blocks;
 }

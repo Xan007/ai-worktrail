@@ -391,12 +391,13 @@ export function CoursesPage() {
     let cancelled = false;
     (async () => {
       const { data } = await client.rpc('fn_get_onboarding_checklist_state').maybeSingle();
-      if (cancelled || !data) return;
+      const state = data as { dismissed?: boolean; has_invited?: boolean; has_courses?: boolean; has_tasks?: boolean } | null;
+      if (cancelled || !state) return;
       setChecklistDb({
-        dismissed: data.dismissed ?? false,
-        hasInvited: data.has_invited ?? false,
-        hasCourses: data.has_courses ?? false,
-        hasTasks: data.has_tasks ?? false,
+        dismissed: state.dismissed ?? false,
+        hasInvited: state.has_invited ?? false,
+        hasCourses: state.has_courses ?? false,
+        hasTasks: state.has_tasks ?? false,
       });
     })();
     return () => { cancelled = true; };
