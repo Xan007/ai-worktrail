@@ -1,41 +1,39 @@
-// Tema de Clerk alineado al sistema de diseño del producto.
-// Compartido por las páginas de inicio de sesión y registro.
+// Clerk theme aligned to the AI WorkTrail design system.
 export const clerkAppearance = {
   variables: {
     fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
-    colorPrimary: '#1E5AA8',
-    colorPrimaryHover: '#174A8C',
+    colorPrimary: '#0077CC',
+    colorPrimaryHover: '#0066B3',
     colorBackground: '#FFFFFF',
-    colorText: '#1A2332',
-    colorTextSecondary: '#4A5568',
-    colorMuted: '#F6F8FB',
+    colorText: '#0F172A',
+    colorTextSecondary: '#64748B',
+    colorMuted: '#F8FAFC',
     colorInputBackground: '#FFFFFF',
-    colorInputText: '#1A2332',
-    borderRadius: '6px',
+    colorInputText: '#0F172A',
+    borderRadius: '8px',
   },
   elements: {
     card: {
-      border: '1px solid #D9E0EA',
-      boxShadow: 'none',
+      border: '1px solid #E2E8F0',
       borderRadius: '10px',
     },
     socialButtonsBlockButton: {
-      border: '1px solid #D9E0EA',
-      borderRadius: '6px',
+      border: '1px solid #E2E8F0',
+      borderRadius: '8px',
       fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
     },
     formButtonPrimary: {
-      background: '#1E5AA8',
-      borderRadius: '6px',
+      background: '#0077CC',
+      borderRadius: '8px',
       fontWeight: 600,
     },
     formFieldInput: {
-      border: '1px solid #D9E0EA',
-      borderRadius: '6px',
+      border: '1px solid #E2E8F0',
+      borderRadius: '8px',
       boxShadow: 'none',
     },
     footerActionLink: {
-      color: '#1E5AA8',
+      color: '#0077CC',
       fontWeight: 500,
     },
   },

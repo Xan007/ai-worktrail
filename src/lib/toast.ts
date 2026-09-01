@@ -40,7 +40,7 @@ function UndoContent({
   return React.createElement(
     'div',
     { className: 'flex items-center justify-between gap-3' },
-    React.createElement('span', { className: 'text-sm font-medium text-[#1A2332]' }, message),
+    React.createElement('span', { className: 'text-sm font-medium text-[#0F172A]' }, message),
     React.createElement(
       'button',
       {
@@ -49,7 +49,7 @@ function UndoContent({
           void onUndo();
           closeToast('undo');
         },
-        className: 'shrink-0 rounded-md bg-[#1E5AA8] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#174A8C]',
+        className: 'shrink-0 rounded-md bg-[#0077CC] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#0066B3]',
       },
       'Deshacer',
     ),
@@ -68,7 +68,7 @@ function TaskCreatedContent({
   return React.createElement(
     'div',
     { className: 'flex items-center justify-between gap-3' },
-    React.createElement('span', { className: 'text-sm font-medium text-[#1A2332]' }, `Tarea “${taskName}” creada`),
+    React.createElement('span', { className: 'text-sm font-medium text-[#0F172A]' }, `Tarea “${taskName}” creada`),
     React.createElement(
       'button',
       {
@@ -77,7 +77,7 @@ function TaskCreatedContent({
           onView();
           closeToast();
         },
-        className: 'shrink-0 rounded-md bg-[#1E5AA8] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#174A8C]',
+        className: 'shrink-0 rounded-md bg-[#0077CC] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#0066B3]',
       },
       'Ver',
     ),

@@ -22,7 +22,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       nodes.push(<strong key={key}>{token.slice(2, -2)}</strong>);
     } else if (token === '[adjunto]') {
       nodes.push(
-        <span key={key} className="mx-0.5 inline-flex translate-y-[1px] items-center gap-1 rounded-md border border-[#D9E0EA] bg-white px-1.5 py-0.5 align-middle text-[11px] font-medium text-[#4A5568]">
+        <span key={key} className="mx-0.5 inline-flex translate-y-[1px] items-center gap-1 rounded-md border border-[#E2E8F0] bg-white px-1.5 py-0.5 align-middle text-[11px] font-medium text-[#334155]">
           <Paperclip size={11} />
           Adjunto
         </span>,
@@ -32,7 +32,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       if (label) nodes.push(<span key={key}>{label}</span>);
     } else {
       nodes.push(
-        <a key={key} href={token} target="_blank" rel="noreferrer" className="text-[#1E5AA8] underline break-all">
+        <a key={key} href={token} target="_blank" rel="noreferrer" className="text-[#0077CC] underline break-all">
           {token}
         </a>,
       );
@@ -64,7 +64,7 @@ export function PromptText({ text }: { text: string }) {
       const headingKey = `h-${trimmed.replace(/^#+\s*/, '').slice(0, 40)}-${linePos}`;
       flush(`p-${trimmed.slice(0, 30)}-${linePos}`);
       blocks.push(
-        <h4 key={headingKey} className="mb-1.5 mt-1 text-sm font-bold text-[#1A2332]">
+        <h4 key={headingKey} className="mb-1.5 mt-1 text-sm font-bold text-[#0F172A]">
           {renderInline(trimmed.replace(/^#+\s*/, ''), headingKey)}
         </h4>,
       );
@@ -75,7 +75,7 @@ export function PromptText({ text }: { text: string }) {
       blocks.push(
         <span
           key={`a-adjunto-${linePos}`}
-          className="mb-2 inline-flex items-center gap-1.5 rounded-md border border-[#D9E0EA] bg-white px-2 py-1 text-xs font-medium text-[#4A5568]"
+          className="mb-2 inline-flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white px-2 py-1 text-xs font-medium text-[#334155]"
         >
           <Paperclip size={12} />
           Archivo adjunto

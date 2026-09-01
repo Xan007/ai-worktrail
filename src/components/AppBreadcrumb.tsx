@@ -42,19 +42,19 @@ export function AppBreadcrumb({ items }: BreadcrumbProps) {
                 width: 30,
                 height: 30,
                 borderRadius: 6,
-                border: '1px solid #D9E0EA',
+                border: '1px solid #E2E8F0',
                 background: '#FFFFFF',
                 cursor: 'pointer',
-                color: '#4A5568',
+                color: '#334155',
                 transition: 'border-color 150ms, color 150ms',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#1E5AA8';
-                e.currentTarget.style.color = '#1E5AA8';
+                e.currentTarget.style.borderColor = '#0077CC';
+                e.currentTarget.style.color = '#0077CC';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#D9E0EA';
-                e.currentTarget.style.color = '#4A5568';
+                e.currentTarget.style.borderColor = '#E2E8F0';
+                e.currentTarget.style.color = '#334155';
               }}
             >
               <ChevronLeft size={15} />
@@ -66,9 +66,9 @@ export function AppBreadcrumb({ items }: BreadcrumbProps) {
           const key = item.href ?? (typeof item.label === 'string' ? item.label : `breadcrumb-${String(item.label).slice(0, 30)}`);
           return (
             <li key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {pos > 0 && <span style={{ color: '#8B95A5', fontSize: 14 }}>/</span>}
+              {pos > 0 && <span style={{ color: '#64748B', fontSize: 14 }}>/</span>}
               {isLast || !item.href ? (
-                <span style={{ fontSize: 14, color: isLast ? '#1A2332' : '#4A5568', fontWeight: 400 }}>
+                <span style={{ fontSize: 14, color: isLast ? '#0F172A' : '#334155', fontWeight: 400 }}>
                   {item.label}
                 </span>
               ) : (
@@ -76,12 +76,12 @@ export function AppBreadcrumb({ items }: BreadcrumbProps) {
                   to={item.href}
                   style={{
                     fontSize: 14,
-                    color: '#4A5568',
+                    color: '#334155',
                     textDecoration: 'none',
                     transition: 'color 150ms',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = '#1E5AA8')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = '#4A5568')}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#0077CC')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#334155')}
                 >
                   {item.label}
                 </Link>

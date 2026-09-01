@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-[#FBEDEB] text-[#B3372F]">
             <AlertTriangle size={28} />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-[#1A2332]">
+          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">
             {this.props.fallbackTitle || 'Algo salió mal al cargar esta vista'}
           </h2>
           <p className="mt-2 text-sm text-[#64748B]">

@@ -8,7 +8,7 @@ export interface StatusMeta {
 }
 
 const STATUS_META: Record<SubmissionState, StatusMeta> = {
-  pending: { label: 'Sin evaluar', color: '#4A5568', bg: '#F0F3F8', strip: '#C7CFDA' },
+  pending: { label: 'Sin evaluar', color: '#334155', bg: '#F0F3F8', strip: '#C7CFDA' },
   graded_ok: { label: 'Evaluada', color: '#1F7A4D', bg: '#E8F4EE', strip: '#1F7A4D' },
   graded_alert: { label: 'Requiere revisión', color: '#B3372F', bg: '#FBEDEB', strip: '#B3372F' },
 };

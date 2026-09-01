@@ -15,7 +15,7 @@ const PLATFORM_META: Record<string, PlatformMeta> = {
   gemini: { label: 'Gemini', color: '#6B4FB3', bg: '#F1EDFA', icon: <Sparkles size={13} /> },
   chatgpt: { label: 'ChatGPT', color: '#0E7A5F', bg: '#E6F5F0', icon: <MessageCircle size={13} /> },
   claude: { label: 'Claude', color: '#B4552D', bg: '#FBEEE9', icon: <Feather size={13} /> },
-  other: { label: 'Otro', color: '#4A5568', bg: '#EEF1F6', icon: <Globe size={13} /> },
+  other: { label: 'Otro', color: '#334155', bg: '#EEF1F6', icon: <Globe size={13} /> },
 };
 
 export function PlatformChip({ platform }: { platform: Platform }) {
@@ -49,7 +49,7 @@ export function StatusChip({ analysis }: { analysis: { score: number | null; fla
 export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger';
 
 const BADGE_TONES: Record<BadgeTone, { color: string; bg: string }> = {
-  neutral: { color: '#4A5568', bg: '#F0F3F8' },
+  neutral: { color: '#334155', bg: '#F0F3F8' },
   success: { color: '#1F7A4D', bg: '#E8F4EE' },
   warning: { color: '#B45309', bg: '#FBF3E7' },
   danger: { color: '#B3372F', bg: '#FBEDEB' },

@@ -73,7 +73,7 @@ function SubmissionsListSection({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#D9E0EA] bg-white">
+    <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
       {latestByStudent.map((sub) => {
         const analysis = getAnalysis(sub.id);
         const isOwn = sub.student.id === user?.id;
@@ -81,21 +81,21 @@ function SubmissionsListSection({
         return (
           <div
             key={sub.id}
-            className="flex items-center gap-4 border-b border-[#D9E0EA] px-5 py-4 last:border-0"
+            className="flex items-center gap-4 border-b border-[#E2E8F0] px-5 py-4 last:border-0"
             onMouseEnter={() => handleMouseEnter(sub.id)}
             onMouseLeave={() => handleMouseLeave(sub.id)}
           >
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 {isTeacher && (
-                  <span className="text-[14px] font-semibold text-[#1A2332]">{sub.student.name}</span>
+                  <span className="text-[14px] font-semibold text-[#0F172A]">{sub.student.name}</span>
                 )}
                 <StatusChip analysis={analysis ?? null} />
                 {sub.chats.map((chat) => (
                   <PlatformChip key={chat.id} platform={chat.platform} />
                 ))}
               </div>
-              <div className="mt-1 text-xs text-[#8B95A5]">
+              <div className="mt-1 text-xs text-[#64748B]">
                 {formatDate(sub.submitted_at)}
                 {sub.chats.length > 0 && ` · ${sub.chats.length} chat${sub.chats.length > 1 ? 's' : ''}`}
               </div>
@@ -109,7 +109,7 @@ function SubmissionsListSection({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Abrir chat en ${chat.platform}`}
-                  className="inline-flex items-center gap-1 text-xs text-[#1E5AA8] hover:underline"
+                  className="inline-flex items-center gap-1 text-xs text-[#0077CC] hover:underline"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink size={13} />
@@ -118,7 +118,7 @@ function SubmissionsListSection({
 
               <Link
                 to={`/courses/${cid}/tasks/${tid}/submissions/${sub.id}`}
-                className="inline-flex items-center gap-1 rounded-md border border-[#D9E0EA] px-2.5 py-1 text-xs text-[#4A5568] hover:bg-[#F0F3F8]"
+                className="inline-flex items-center gap-1 rounded-md border border-[#E2E8F0] px-2.5 py-1 text-xs text-[#334155] hover:bg-[#F0F3F8]"
               >
                 <ChevronRight size={13} />
                 Ver
@@ -128,7 +128,7 @@ function SubmissionsListSection({
                 <button
                   type="button"
                   onClick={() => onDeleteClick(sub.id)}
-                  className="inline-flex items-center rounded-md border border-[#D9E0EA] p-1.5 text-[#8B95A5] hover:border-[#B3372F] hover:text-[#B3372F]"
+                  className="inline-flex items-center rounded-md border border-[#E2E8F0] p-1.5 text-[#64748B] hover:border-[#B3372F] hover:text-[#B3372F]"
                   aria-label="Eliminar entrega"
                 >
                   <Trash2 size={13} />
@@ -246,9 +246,9 @@ function TaskEditDialog({ task, onUpdated }: { task: Task; onUpdated: () => void
               <Input id="edit-due-time" type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} />
             </div>
           </div>
-          <div className="rounded-lg border border-[#D9E0EA] bg-[#F8FAFD] p-4">
+          <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFD] p-4">
             <div className="mb-3 flex items-center gap-2">
-              <input id="edit-group-task" type="checkbox" checked={isGroup} onChange={(e) => setIsGroup(e.target.checked)} className="size-4 accent-[#1E5AA8]" />
+              <input id="edit-group-task" type="checkbox" checked={isGroup} onChange={(e) => setIsGroup(e.target.checked)} className="size-4 accent-[#0077CC]" />
               <Label htmlFor="edit-group-task">Permitir entrega grupal</Label>
             </div>
             {isGroup && (
@@ -275,7 +275,7 @@ function TaskEditDialog({ task, onUpdated }: { task: Task; onUpdated: () => void
             </NativeSelect>
           </div>
           <div className="flex items-center gap-2">
-            <input id="edit-allow-resubmission" type="checkbox" checked={allowResubmission} onChange={(e) => setAllowResubmission(e.target.checked)} className="size-4 accent-[#1E5AA8]" />
+            <input id="edit-allow-resubmission" type="checkbox" checked={allowResubmission} onChange={(e) => setAllowResubmission(e.target.checked)} className="size-4 accent-[#0077CC]" />
             <Label htmlFor="edit-allow-resubmission">Permitir que los estudiantes corrijan su entrega</Label>
           </div>
           {error && <p className="text-sm text-[#B3372F]">{error}</p>}
@@ -459,7 +459,7 @@ export function TaskDetailPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-5 shrink-0 gap-1 rounded-full bg-white px-2.5 py-0 text-[11px] font-medium leading-none text-[#64748B] shadow-sm ring-1 ring-[#D9E0EA] hover:bg-[#F0F3F8] hover:text-[#1A2332]"
+            className="h-5 shrink-0 gap-1 rounded-full bg-white px-2.5 py-0 text-[11px] font-medium leading-none text-[#64748B] shadow-sm ring-1 ring-[#E2E8F0] hover:bg-[#F0F3F8] hover:text-[#0F172A]"
             onClick={() => setStudentPreview(!isStudentPreview)}
           >
             <Eye size={11} />
@@ -471,10 +471,10 @@ export function TaskDetailPage() {
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-[25px] font-bold tracking-[-0.03em] text-[#1A2332]">{task.name}</h1>
+            <h1 className="text-[25px] font-bold tracking-[-0.03em] text-[#0F172A]">{task.name}</h1>
             {isTaskClosed && <span className="rounded-full bg-[#FBEDEB] px-2 py-0.5 text-xs font-semibold text-[#B3372F]">Cerrada</span>}
           </div>
-          <p className="mt-1 text-xs text-[#8B95A5]">
+          <p className="mt-1 text-xs text-[#64748B]">
             Vence:{' '}
             {task.due_at
               ? (() => {
@@ -499,7 +499,7 @@ export function TaskDetailPage() {
                 disabled={pendingDeleteTask}
                 onClick={() => setConfirmDeleteTaskOpen(true)}
                 aria-label="Eliminar tarea"
-                className="text-[#8B95A5] hover:border-[#B3372F] hover:bg-[#FBEDEB] hover:text-[#B3372F]"
+                className="text-[#64748B] hover:border-[#B3372F] hover:bg-[#FBEDEB] hover:text-[#B3372F]"
                 title="Eliminar tarea"
               >
                 <Trash2 size={16} />
@@ -530,12 +530,12 @@ export function TaskDetailPage() {
       )}
 
       <div className="mb-4 flex items-center gap-2">
-        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A2332', margin: 0 }}>Entregas</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', margin: 0 }}>Entregas</h2>
         <span
           style={{
             fontSize: 12,
             fontWeight: 600,
-            color: '#8B95A5',
+            color: '#64748B',
             background: '#F0F3F8',
             borderRadius: 10,
             padding: '1px 7px',

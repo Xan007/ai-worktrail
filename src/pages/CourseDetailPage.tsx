@@ -6,6 +6,7 @@ import { useUser } from '@clerk/clerk-react';
 import { AppBreadcrumb } from '@/components/AppBreadcrumb';
 import { EmptyState } from '@/components/EmptyState';
 import { InviteModal } from '@/components/InviteModal';
+import { TeacherOnboardingChecklist } from '@/components/TeacherOnboardingChecklist';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,6 @@ import { createTask as createTaskApi, deleteCourse, getCourse, getMySubmissionsB
 import type { AIEvaluationMode, Course, EnrollmentMode, GroupGradingMode, Task } from '@/lib/mockdata';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TeacherOnboardingChecklist } from '@/components/TeacherOnboardingChecklist';
 
 function TaskDialog({
   onCreate,
@@ -57,7 +57,7 @@ function TaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={`gap-2 ${highlight ? 'shadow-md ring-2 ring-[#1E5AA8] ring-offset-2' : ''}`} variant={highlight ? 'default' : 'default'}>
+        <Button className={`gap-2 ${highlight ? 'btn-checklist-highlight' : ''}`} variant={highlight ? 'default' : 'default'}>
           <Plus size={16} />Nueva tarea
         </Button>
       </DialogTrigger>
@@ -69,8 +69,8 @@ function TaskDialog({
             <div className="space-y-2"><Label htmlFor="due-date">Fecha de vencimiento</Label><Input id="due-date" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></div>
             <div className="space-y-2"><Label htmlFor="due-time">Hora de vencimiento</Label><Input id="due-time" type="time" value={dueTime} onChange={(event) => setDueTime(event.target.value)} /></div>
           </div>
-          <div className="rounded-lg border border-[#D9E0EA] bg-[#F8FAFD] p-4">
-            <div className="mb-3 flex items-center gap-2"><input id="group-task" type="checkbox" checked={isGroup} onChange={(event) => setIsGroup(event.target.checked)} className="size-4 accent-[#1E5AA8]" /><Label htmlFor="group-task">Permitir entrega grupal</Label></div>
+          <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFD] p-4">
+            <div className="mb-3 flex items-center gap-2"><input id="group-task" type="checkbox" checked={isGroup} onChange={(event) => setIsGroup(event.target.checked)} className="size-4 accent-[#0077CC]" /><Label htmlFor="group-task">Permitir entrega grupal</Label></div>
             {isGroup && <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="group-size">Máximo de integrantes</Label><Input id="group-size" type="number" min="2" max="10" value={maxGroupSize} onChange={(event) => setMaxGroupSize(event.target.value)} /></div><div className="space-y-2"><Label htmlFor="group-grading">Calificación</Label><NativeSelect id="group-grading" value={groupGrading} onChange={(event) => setGroupGrading(event.target.value as GroupGradingMode)} className="w-full"><NativeSelectOption value="shared">Una nota para el grupo</NativeSelectOption><NativeSelectOption value="individual">Nota individual</NativeSelectOption></NativeSelect></div></div>}
           </div>
           <div className="space-y-2">
@@ -86,7 +86,7 @@ function TaskDialog({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <input id="allow-resubmission" type="checkbox" checked={allowResubmission} onChange={(event) => setAllowResubmission(event.target.checked)} className="size-4 accent-[#1E5AA8]" />
+            <input id="allow-resubmission" type="checkbox" checked={allowResubmission} onChange={(event) => setAllowResubmission(event.target.checked)} className="size-4 accent-[#0077CC]" />
             <Label htmlFor="allow-resubmission">Permitir que los estudiantes corrijan su entrega</Label>
           </div>
           <DialogFooter><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button type="submit">Publicar tarea</Button></DialogFooter>
@@ -227,13 +227,13 @@ function SettingsDialog({
             <Label htmlFor="settings-description">Descripción (opcional)</Label>
             <Textarea id="settings-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descripción del curso..." className="min-h-[80px]" />
           </div>
-          <div className="flex items-center justify-between rounded-lg border border-[#D9E0EA] bg-[#F8FAFD] px-4 py-3">
+          <div className="flex items-center justify-between rounded-lg border border-[#E2E8F0] bg-[#F8FAFD] px-4 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex size-8 items-center justify-center rounded-md bg-white text-[#1E5AA8] border border-[#D9E0EA]">
+              <div className="flex size-8 items-center justify-center rounded-md bg-white text-[#0077CC] border border-[#E2E8F0]">
                 <Lock size={16} />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#1A2332]">Bloquear inscripciones</p>
+                <p className="text-sm font-medium text-[#0F172A]">Bloquear inscripciones</p>
                 <p className="text-xs text-[#64748B] leading-relaxed">Si está activo, nadie podrá unirse aunque tenga el código.</p>
               </div>
             </div>
@@ -246,7 +246,7 @@ function SettingsDialog({
                 className="peer sr-only"
                 aria-label="Bloquear inscripciones"
               />
-              <div className="peer h-6 w-11 rounded-full bg-[#D9E0EA] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#1E5AA8] peer-checked:after:translate-x-5 peer-disabled:opacity-60" />
+              <div className="peer h-6 w-11 rounded-full bg-[#E2E8F0] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#0077CC] peer-checked:after:translate-x-5 peer-disabled:opacity-60" />
             </label>
           </div>
           {error && <p className="text-sm text-[#B3372F]">{error}</p>}
@@ -255,7 +255,7 @@ function SettingsDialog({
             <Button type="submit" disabled={busy}>{busy ? 'Guardando…' : 'Guardar cambios'}</Button>
           </DialogFooter>
         </form>
-        <div className="mt-2 border-t border-[#D9E0EA] pt-4">
+        <div className="mt-2 border-t border-[#E2E8F0] pt-4">
           <h4 className="text-sm font-semibold text-[#B3372F]">Zona peligrosa</h4>
           <p className="mt-1 text-xs leading-relaxed text-[#64748B]">Eliminar el curso borrará tareas, entregas y evaluaciones de forma permanente.</p>
           <Button
@@ -283,6 +283,7 @@ interface TasksListSectionProps {
   mySubmissions: Record<string, string>;
   courseId: string;
   onFilterChange: (filter: 'all' | 'pending' | 'submitted') => void;
+  actions?: React.ReactNode;
 }
 
 function TasksListSection({
@@ -293,6 +294,7 @@ function TasksListSection({
   mySubmissions,
   courseId,
   onFilterChange,
+  actions,
 }: TasksListSectionProps) {
   const displayedTasks = isTeacher
     ? sortedTasks
@@ -306,14 +308,17 @@ function TasksListSection({
     <>
       <div className="mb-4 flex items-end justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-[#1A2332]">{isTeacher ? 'Tareas del curso' : 'Tareas'}</h2>
-          <p className="mt-1 text-sm text-[#8B95A5]">
+          <h2 className="text-lg font-semibold text-[#0F172A]">{isTeacher ? 'Tareas del curso' : 'Tareas'}</h2>
+          <p className="mt-1 text-sm text-[#64748B]">
             {isTeacher ? 'Organiza las actividades y revisa las entregas.' : 'Actividades disponibles para entregar.'}
           </p>
         </div>
-        <div className="hidden items-center gap-2 text-xs text-[#8B95A5] sm:flex">
-          <CalendarClock size={15} />
-          {sortedTasks.length} actividades
+        <div className="flex items-center gap-3">
+          {actions}
+          <div className="hidden items-center gap-2 text-xs text-[#64748B] sm:flex">
+            <CalendarClock size={15} />
+            {sortedTasks.length} actividades
+          </div>
         </div>
       </div>
 
@@ -326,8 +331,8 @@ function TasksListSection({
               onClick={() => onFilterChange(filter)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 taskFilter === filter
-                  ? 'bg-[#1E5AA8] text-white'
-                  : 'bg-[#F0F3F8] text-[#4A5568] hover:bg-[#E2E8F0]'
+                  ? 'bg-[#0077CC] text-white'
+                  : 'bg-[#F0F3F8] text-[#334155] hover:bg-[#E2E8F0]'
               }`}
             >
               {filter === 'all' ? 'Todas' : filter === 'pending' ? 'Pendientes' : 'Entregadas'}
@@ -337,9 +342,9 @@ function TasksListSection({
       )}
 
       {loading ? (
-        <div className="overflow-hidden rounded-lg border border-[#D9E0EA]">
+        <div className="overflow-hidden rounded-lg border border-[#E2E8F0]">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="flex h-[82px] items-center gap-4 border-b border-[#D9E0EA] px-5 last:border-0">
+            <div key={item} className="flex h-[82px] items-center gap-4 border-b border-[#E2E8F0] px-5 last:border-0">
               <div className="size-9 animate-pulse rounded-md bg-[#F0F3F8]" />
               <div className="flex-1 space-y-2">
                 <div className="h-4 w-2/3 animate-pulse rounded bg-[#F0F3F8]" />
@@ -359,7 +364,7 @@ function TasksListSection({
           hint={taskFilter === 'submitted' ? 'Tus entregas aparecerán aquí.' : '¡Ya entregaste todas las tareas!'}
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-[#D9E0EA] bg-white">
+        <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
           {displayedTasks.map((task) => (
             <Link
               key={task.id}
@@ -370,14 +375,14 @@ function TasksListSection({
                     ? `/courses/${courseId}/tasks/${task.id}`
                     : `/courses/${courseId}/tasks/${task.id}/submit`
               }
-              className="group flex min-h-[72px] items-center gap-4 border-b border-[#D9E0EA] px-5 py-4 last:border-0 transition-colors hover:bg-[#F8FAFD]"
+              className="group flex min-h-[72px] items-center gap-4 border-b border-[#E2E8F0] px-5 py-4 last:border-0 transition-colors hover:bg-[#F8FAFD]"
             >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#EAF1F9] text-[#1E5AA8]">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#E0F2FE] text-[#0077CC]">
                 <ClipboardList size={17} />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[15px] font-semibold text-[#1A2332] group-hover:text-[#1E5AA8]">{task.name}</div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#8B95A5]">
+                <div className="truncate text-[15px] font-semibold text-[#0F172A] group-hover:text-[#0077CC]">{task.name}</div>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#64748B]">
                   <CalendarClock size={13} />
                   <span>Vence {formatDueDate(task)}</span>
                   {task.is_group_task && (
@@ -396,16 +401,16 @@ function TasksListSection({
               </div>
               <div className="flex items-center gap-2">
                 {isTeacher && (
-                  <span className="hidden text-xs font-medium text-[#1E5AA8] sm:inline-block">
+                  <span className="hidden text-xs font-medium text-[#0077CC] sm:inline-block">
                     Ver
                   </span>
                 )}
                 {!isTeacher && (
                   mySubmissions[task.id]
                     ? <CircleCheck size={16} className="shrink-0 text-[#1F7A4D]" />
-                    : <Circle size={16} className="shrink-0 text-[#D9E0EA]" />
+                    : <Circle size={16} className="shrink-0 text-[#E2E8F0]" />
                 )}
-                <ChevronRight size={17} className="shrink-0 text-[#8B95A5] transition-transform group-hover:translate-x-0.5 group-hover:text-[#1E5AA8]" />
+                <ChevronRight size={17} className="shrink-0 text-[#64748B] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0077CC]" />
               </div>
             </Link>
           ))}
@@ -427,6 +432,8 @@ export function CourseDetailPage() {
   const [pendingEnrollmentsCount, setPendingEnrollmentsCount] = useState(0);
   const [studentsCount, setStudentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const busyRef = useRef(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -438,100 +445,64 @@ export function CourseDetailPage() {
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [inviteVersion, setInviteVersion] = useState(0);
-  const [taskVersion, setTaskVersion] = useState(0);
+  const [checklistDismissed, setChecklistDismissed] = useState(false);
+  const [checklistHasInvited, setChecklistHasInvited] = useState(false);
   const { isStudentPreview, setStudentPreview, isActualTeacher, isTeacher } = useCourseRole(course?.teacher_id);
-  const hasInviteClicked = useMemo(() => {
-    if (!course) return false;
-    try {
-      if (
-        localStorage.getItem(`awt_invite_clicked_${course.id}`) === 'true' ||
-        localStorage.getItem(`awt_invited_${course.id}`) === 'true'
-      )
-        return true;
-    } catch {}
-    if (profile?.onboarding_has_invited) return true;
-    return false;
-  }, [course?.id, inviteVersion, profile?.onboarding_has_invited]);
 
-  const hasGlobalInviteDone = useMemo(() => {
-    try {
-      if (localStorage.getItem('awt_step_invited_done') === 'true') return true;
-    } catch {}
-    if (profile?.onboarding_has_invited) return true;
-    return false;
-  }, [inviteVersion, profile?.onboarding_has_invited]);
-
-  const hasTaskClicked = useMemo(() => {
-    if (!course) return false;
-    try {
-      if (localStorage.getItem(`awt_task_clicked_${course.id}`) === 'true') return true;
-    } catch {}
-    if (profile?.onboarding_has_created_task) return true;
-    return false;
-  }, [course?.id, taskVersion, profile?.onboarding_has_created_task]);
-
-  const isChecklistDismissed = useMemo(() => {
-    try {
-      if (localStorage.getItem('awt_teacher_checklist_dismissed') === 'true') return true;
-    } catch {}
-    if (profile?.onboarding_dismissed) return true;
-    return false;
-  }, [inviteVersion, taskVersion, profile?.onboarding_dismissed]);
-
-  const inviteDone = hasInviteClicked || studentsCount > 0 || hasGlobalInviteDone;
+  // Invite done = opened invite modal (DB flag) OR actual students exist
+  const inviteDone = checklistHasInvited || studentsCount > 0;
 
   const shouldHighlightInvite = useMemo(() => {
     if (!course || !isTeacher) return false;
-    if (isChecklistDismissed) return false;
+    if (checklistDismissed) return false;
     if (inviteDone) return false;
     return studentsCount === 0;
-  }, [course?.id, isTeacher, studentsCount, inviteDone, isChecklistDismissed]);
+  }, [course?.id, isTeacher, studentsCount, inviteDone, checklistDismissed]);
 
   const shouldHighlightTask = useMemo(() => {
     if (!course || !isTeacher) return false;
-    if (isChecklistDismissed) return false;
+    if (checklistDismissed) return false;
     if (!inviteDone) return false;
-    if (hasTaskClicked) return false;
+    if (tasks.length > 0) return false;
     return tasks.length === 0;
-  }, [course?.id, isTeacher, tasks.length, inviteDone, hasTaskClicked, isChecklistDismissed]);
+  }, [course?.id, isTeacher, tasks.length, inviteDone, tasks.length > 0, checklistDismissed]);
 
   const handleInviteOpenChange = (open: boolean) => {
-    if (open && course) {
-      try {
-        localStorage.setItem(`awt_invite_clicked_${course.id}`, 'true');
-        localStorage.setItem('awt_step_invited_done', 'true');
-        setInviteVersion((v) => v + 1);
-      } catch {}
-      void (async () => {
-        try {
-          if (user) {
-            await client.from('users').update({ onboarding_has_invited: true }).eq('id', user.id);
-            await refresh();
-          }
-        } catch {}
-      })();
-    }
     setInviteModalOpen(open);
+    if (open && course) {
+      // Mark invited step in DB then refresh local state
+      client.rpc('fn_mark_onboarding_invited').then(() => refreshChecklist()).catch(() => {});
+    }
+    if (!open) {
+      // Refresh enrollment counts when modal closes
+      void refreshStudents();
+    }
   };
 
   const handleTaskOpenChange = (open: boolean) => {
-    if (open && course) {
-      try {
-        localStorage.setItem(`awt_task_clicked_${course.id}`, 'true');
-        setTaskVersion((v) => v + 1);
-      } catch {}
-      void (async () => {
-        try {
-          if (user) {
-            await client.from('users').update({ onboarding_has_created_task: true }).eq('id', user.id);
-            await refresh();
-          }
-        } catch {}
-      })();
-    }
     setTaskModalOpen(open);
   };
+
+  const refreshTasks = useCallback(async () => {
+    if (!id) return;
+    setLoadingTasks(true);
+    try {
+      const taskData = await listTasks(client, id);
+      setTasks(taskData);
+    } catch { /* ignore */ }
+    finally { setLoadingTasks(false); }
+  }, [client, id]);
+
+  const refreshStudents = useCallback(async () => {
+    if (!id) return;
+    setLoadingStudents(true);
+    try {
+      const enr = await listCourseEnrollments(client, id);
+      setPendingEnrollmentsCount(enr.filter((e) => e.status === 'pending').length);
+      setStudentsCount(enr.filter((e) => e.status === 'approved').length);
+    } catch { /* ignore */ }
+    finally { setLoadingStudents(false); }
+  }, [client, id]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -580,6 +551,17 @@ export function CourseDetailPage() {
     void load();
   }, [load]);
 
+  // Load checklist state from DB (dismissed + hasInvited)
+  const refreshChecklist = useCallback(async () => {
+    if (!user) return;
+    const { data } = await client.rpc('fn_get_onboarding_checklist_state').maybeSingle();
+    if (data) {
+      setChecklistDismissed(data.dismissed ?? false);
+      setChecklistHasInvited(data.has_invited ?? false);
+    }
+  }, [user?.id, client]);
+  useEffect(() => { void refreshChecklist(); }, [refreshChecklist]);
+
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { courseId?: string } | undefined;
@@ -616,7 +598,7 @@ export function CourseDetailPage() {
         due_date: data.due_at,
         allow_resubmission: data.allow_resubmission ?? true,
       });
-      await load();
+      await refreshTasks();
       showTaskCreated({ taskName: data.name, taskId: created.id, courseId: course.id, navigate });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -677,7 +659,7 @@ export function CourseDetailPage() {
       <main className="page-fade mx-auto max-w-[1040px] px-6 py-8" aria-busy="true">
         <span className="sr-only">Cargando curso...</span>
         <AppBreadcrumb items={[{ label: 'Mis cursos', href: '/courses' }, { label: <Skeleton className="inline-block h-3 w-24 rounded" /> }]} />
-        <section className="mb-8 overflow-hidden rounded-xl border border-[#D9E0EA] bg-white shadow-sm">
+        <section className="mb-8 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
           <div className="flex flex-col justify-between gap-5 p-6 sm:flex-row sm:items-center">
             <div>
               <Skeleton className="mb-1 h-3 w-8 rounded" />
@@ -702,7 +684,7 @@ export function CourseDetailPage() {
         </div>
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex h-[82px] items-center gap-4 border-b border-[#D9E0EA] px-5 last:border-0">
+            <div key={i} className="flex h-[82px] items-center gap-4 border-b border-[#E2E8F0] px-5 last:border-0">
               <Skeleton className="size-9 shrink-0 rounded-md" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-2/3 rounded" />
@@ -726,7 +708,7 @@ export function CourseDetailPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-5 shrink-0 gap-1 rounded-full bg-white px-2.5 py-0 text-[11px] font-medium leading-none text-[#64748B] shadow-sm ring-1 ring-[#D9E0EA] hover:bg-[#F0F3F8] hover:text-[#1A2332]"
+            className="h-5 shrink-0 gap-1 rounded-full bg-white px-2.5 py-0 text-[11px] font-medium leading-none text-[#64748B] shadow-sm ring-1 ring-[#E2E8F0] hover:bg-[#F0F3F8] hover:text-[#0F172A]"
             onClick={() => setStudentPreview(!isStudentPreview)}
           >
             <Eye size={11} />
@@ -734,12 +716,15 @@ export function CourseDetailPage() {
           </Button>
         )}
       </div>
-      <section className="mb-8 overflow-hidden rounded-xl border border-[#D9E0EA] bg-white shadow-sm">
+      <section className="mb-8 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
         <div className="flex flex-col justify-between gap-5 p-6 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-[25px] font-bold tracking-[-0.03em] text-[#1A2332]">{course.name}</h1>
-            {course.description && <p className="mt-1 text-sm text-[#4A5568]">{course.description}</p>}
+          <div className="flex items-center gap-3">
+            <h1 className="text-[25px] font-bold tracking-[-0.03em] text-[#0F172A]">{course.name}</h1>
+            {isActualTeacher && (
+              <SettingsDialog course={course} onSaved={(updated) => setCourse({ ...course, ...updated })} onDeleteRequest={() => setDeleteOpen(true)} />
+            )}
           </div>
+          {course.description && <p className="mt-1 text-sm text-[#334155]">{course.description}</p>}
           <div className="flex flex-wrap items-center gap-2">
             {isTeacher && (
               <>
@@ -749,48 +734,41 @@ export function CourseDetailPage() {
                   open={inviteModalOpen}
                   onOpenChange={handleInviteOpenChange}
                   hideTrigger
-                  onCopied={() => setInviteVersion((v) => v + 1)}
+                  onCopied={() => {}}
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant={shouldHighlightInvite ? 'default' : 'outline'}
-                      className={`gap-2 ${shouldHighlightInvite ? 'shadow-md ring-2 ring-[#1E5AA8] ring-offset-2' : ''}`}
+                      className={`gap-2 ${shouldHighlightInvite ? 'btn-checklist-highlight' : ''}`}
                     >
                       <Users size={16} />
                       Estudiantes
-                      {pendingEnrollmentsCount > 0 && <span className="size-2 rounded-full bg-[#1E5AA8]" />}
+                      {pendingEnrollmentsCount > 0 && <span className="size-2 rounded-full bg-[#0077CC]" />}
                       <ChevronDown size={14} className="opacity-60" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem
-                      onClick={() => handleInviteOpenChange(true)}
-                      className={shouldHighlightInvite ? 'font-semibold text-[#1E5AA8] focus:text-[#1E5AA8]' : ''}
-                    >
-                      <Copy size={14} />
-                      Invitar estudiantes
-                      {shouldHighlightInvite && <span className="ml-auto size-1.5 animate-pulse rounded-full bg-[#1E5AA8]" />}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate(`/courses/${course.id}/students`)}>
                       <Users size={14} />
-                      Ver lista
+                      Gestionar
                       {pendingEnrollmentsCount > 0 && (
-                        <span className="ml-auto rounded-full bg-[#1E5AA8] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                        <span className="ml-auto rounded-full bg-[#0077CC] px-1.5 py-0.5 text-[10px] font-semibold text-white">
                           {pendingEnrollmentsCount}
                         </span>
                       )}
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleInviteOpenChange(true)}
+                      className={shouldHighlightInvite ? 'font-semibold text-[#0077CC] focus:text-[#0077CC]' : ''}
+                    >
+                      <Copy size={14} />
+                      Invitar
+                      {shouldHighlightInvite && <span className="ml-auto size-1.5 animate-pulse rounded-full bg-[#0077CC]" />}
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <TaskDialog
-                  onCreate={createTask}
-                  open={taskModalOpen}
-                  onOpenChange={handleTaskOpenChange}
-                  highlight={shouldHighlightTask}
-                />
-                <SettingsDialog course={course} onSaved={(updated) => setCourse({ ...course, ...updated })} onDeleteRequest={() => setDeleteOpen(true)} />
               </>
             )}
             {!isTeacher && (
@@ -806,7 +784,7 @@ export function CourseDetailPage() {
             {!isActualTeacher && (
               <Button
                 variant="outline"
-                className="gap-2 text-xs text-[#B3372F] border-[#D9E0EA] hover:border-[#B3372F] hover:bg-[#FBEDEB]"
+                className="gap-2 text-xs text-[#B3372F] border-[#E2E8F0] hover:border-[#B3372F] hover:bg-[#FBEDEB]"
                 onClick={() => setLeaveOpen(true)}
               >
                 <LogOut size={15} />
@@ -816,18 +794,18 @@ export function CourseDetailPage() {
           </div>
         </div>
         {isTeacher && pendingEnrollmentsCount > 0 && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#D9E0EA] bg-[#F8FAFD] px-6 py-3 text-xs text-[#1A2332]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#E2E8F0] bg-[#F8FAFD] px-6 py-3 text-xs text-[#0F172A]">
             <div className="flex items-center gap-2.5">
-              <span className="flex size-2 rounded-full bg-[#1E5AA8]" />
-              <span className="text-[#4A5568]">
-                <strong className="text-[#1A2332] font-semibold">{pendingEnrollmentsCount} {pendingEnrollmentsCount === 1 ? 'estudiante está esperando' : 'estudiantes están esperando'}</strong> aprobación para ingresar a este curso.
+              <span className="flex size-2 rounded-full bg-[#0077CC]" />
+              <span className="text-[#334155]">
+                <strong className="text-[#0F172A] font-semibold">{pendingEnrollmentsCount} {pendingEnrollmentsCount === 1 ? 'estudiante está esperando' : 'estudiantes están esperando'}</strong> aprobación para ingresar a este curso.
               </span>
             </div>
             <Button
               size="sm"
               variant="outline"
               onClick={() => navigate(`/courses/${course.id}/students`)}
-              className="h-7 text-xs border-[#D9E0EA] bg-white text-[#1E5AA8] hover:bg-[#EAF1F9] self-start sm:self-auto"
+              className="h-7 text-xs border-[#E2E8F0] bg-white text-[#0077CC] hover:bg-[#E0F2FE] self-start sm:self-auto"
             >
               Revisar solicitudes
             </Button>
@@ -836,23 +814,26 @@ export function CourseDetailPage() {
       </section>
 
       {isTeacher && (
-        <TeacherOnboardingChecklist
-          hasCourses={true}
-          hasStudents={studentsCount > 0 || hasInviteClicked}
-          hasTasks={tasks.length > 0 || hasTaskClicked}
-          onInviteStudents={() => handleInviteOpenChange(true)}
-          onCreateTask={() => handleTaskOpenChange(true)}
-        />
+        <>
+        </>
       )}
 
       <TasksListSection
-        loading={loading}
+        loading={loadingTasks}
         isTeacher={isTeacher}
         sortedTasks={sortedTasks}
         taskFilter={taskFilter}
         mySubmissions={mySubmissions}
         courseId={course.id}
         onFilterChange={setTaskFilter}
+        actions={isTeacher ? (
+          <TaskDialog
+            onCreate={createTask}
+            open={taskModalOpen}
+            onOpenChange={handleTaskOpenChange}
+            highlight={shouldHighlightTask}
+          />
+        ) : undefined}
       />
 
       {/* Leave course dialog (students) */}
@@ -890,6 +871,27 @@ export function CourseDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {isTeacher && (() => {
+        const hasStudents = inviteDone;
+        const hasTasks = tasks.length > 0;
+        // Sequential: step 1 is always done (we're on the course page)
+        let completedCount = 1;
+        if (hasStudents) completedCount = 2;
+        if (completedCount === 2 && hasTasks) completedCount = 3;
+        const currentStep = !hasStudents ? 'invite' as const : !hasTasks ? 'task' as const : null;
+        return (
+          <TeacherOnboardingChecklist
+            loading={loading}
+            currentStep={currentStep}
+            completedCount={completedCount}
+            onDismiss={async () => {
+              await client.rpc('fn_dismiss_onboarding_checklist');
+              setChecklistDismissed(true);
+            }}
+          />
+        );
+      })()}
     </main>
   );
 }

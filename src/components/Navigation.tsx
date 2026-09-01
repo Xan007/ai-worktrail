@@ -20,10 +20,10 @@ const NAV = [
 function Brand() {
   return (
     <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
-      <div className="flex size-7 items-center justify-center rounded-lg bg-[#1E5AA8] text-white shadow-2xs transition-transform group-hover:scale-105">
+      <div className="flex size-7 items-center justify-center rounded-lg bg-[#0077CC] text-white shadow-2xs transition-transform group-hover:scale-105">
         <span className="size-2 rounded-xs bg-white" />
       </div>
-      <span className="font-bold text-base tracking-tight text-[#1A2332] group-hover:text-[#1E5AA8] transition-colors">
+      <span className="font-bold text-base tracking-tight text-[#0F172A] group-hover:text-[#0077CC] transition-colors">
         AI WorkTrail
       </span>
     </Link>
@@ -42,8 +42,8 @@ function NavList() {
           className={({ isActive }) =>
             `${base} ${
               isActive
-                ? 'bg-[#EAF1F9] text-[#1E5AA8]'
-                : 'text-[#4A5568] hover:bg-[#F0F3F8] hover:text-[#1A2332]'
+                ? 'bg-[#E0F2FE] text-[#0077CC]'
+                : 'text-[#334155] hover:bg-[#F0F3F8] hover:text-[#0F172A]'
             }`
           }
         >
@@ -66,7 +66,7 @@ function StudentPreviewBanner() {
   if (profile?.role !== 'teacher') return null;
 
   return (
-    <div className="bg-[#1E5AA8] text-white px-4 py-1.5 text-xs font-medium flex items-center justify-between shadow-inner">
+    <div className="bg-[#0077CC] text-white px-4 py-1.5 text-xs font-medium flex items-center justify-between shadow-inner">
       <div className="mx-auto flex max-w-[1240px] w-full items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Eye size={14} className="text-[#93C5FD]" />
@@ -92,7 +92,7 @@ function NotificationsBell() {
       type="button"
       aria-label="Notificaciones"
       title="Notificaciones"
-      className="relative flex size-8 shrink-0 items-center justify-center rounded-md text-[#4A5568] transition-colors hover:bg-[#F0F3F8] hover:text-[#1A2332]"
+      className="relative flex size-8 shrink-0 items-center justify-center rounded-md text-[#334155] transition-colors hover:bg-[#F0F3F8] hover:text-[#0F172A]"
     >
       <Bell size={16} />
     </button>
@@ -119,19 +119,19 @@ function UserMenu() {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-1.5 rounded-md p-1 transition-colors hover:bg-[#F0F3F8]" style={{ outline: 'none' }}>
           {avatarUrl ? (
-            <img src={avatarUrl} alt={name} className="size-7 rounded-full object-cover border border-[#D9E0EA]" />
+            <img src={avatarUrl} alt={name} className="size-7 rounded-full object-cover border border-[#E2E8F0]" />
           ) : (
-            <span className="flex size-7 items-center justify-center rounded-full bg-[#EAF1F9] font-mono text-xs font-bold text-[#1E5AA8]">
+            <span className="flex size-7 items-center justify-center rounded-full bg-[#E0F2FE] font-mono text-xs font-bold text-[#0077CC]">
               {initials}
             </span>
           )}
-          <ChevronDown size={12} className="text-[#8B95A5]" />
+          <ChevronDown size={12} className="text-[#64748B]" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52 p-1">
         <div className="px-2.5 py-2">
-          <div className="truncate text-xs font-bold text-[#1A2332]">{name}</div>
-          <div className="truncate text-[11px] text-[#8B95A5]">{user?.primaryEmailAddress?.emailAddress}</div>
+          <div className="truncate text-xs font-bold text-[#0F172A]">{name}</div>
+          <div className="truncate text-[11px] text-[#64748B]">{user?.primaryEmailAddress?.emailAddress}</div>
         </div>
         <div className="my-1 h-px bg-[#EEF1F6]" />
         <DropdownMenuItem onClick={() => navigate('/settings')} className="text-xs">
@@ -150,7 +150,7 @@ function UserMenu() {
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
-      <header className="sticky top-0 z-40 border-b border-[#D9E0EA] bg-white/90 backdrop-blur-md transition-colors">
+      <header className="sticky top-0 z-40 border-b border-[#E2E8F0] bg-white/90 backdrop-blur-md transition-colors">
         <StudentPreviewBanner />
         <div className="mx-auto flex h-14 w-full max-w-[1240px] items-center gap-4 px-6">
           <Brand />
@@ -163,7 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SignedOut>
               <Link
                 to="/login"
-                className="whitespace-nowrap rounded-md bg-[#1E5AA8] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#174A8C] shadow-2xs"
+                className="whitespace-nowrap rounded-md bg-[#0077CC] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#0066B3] shadow-2xs"
               >
                 Iniciar sesión
               </Link>

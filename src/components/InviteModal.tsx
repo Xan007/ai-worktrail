@@ -74,7 +74,7 @@ export function InviteModal({
         <DialogTrigger asChild>
           <Button
             variant={highlight ? 'default' : 'outline'}
-            className={`gap-2 ${highlight ? 'shadow-md ring-2 ring-[#1E5AA8] ring-offset-2' : ''}`}
+            className={`gap-2 ${highlight ? 'shadow-md ring-2 ring-[#0077CC] ring-offset-2' : ''}`}
           >
             {triggerLabel}
           </Button>
@@ -90,11 +90,11 @@ export function InviteModal({
 
         <div className="space-y-4 py-2">
           <div>
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#8B95A5]">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#64748B]">
               Código de clase
             </span>
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#D9E0EA] bg-[#F6F8FB] px-4 py-3">
-              <span className="font-mono text-xl font-semibold tracking-[0.18em] text-[#1A2332]">{joinCode}</span>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+              <span className="font-mono text-xl font-semibold tracking-[0.18em] text-[#0F172A]">{joinCode}</span>
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={copyCode}>
                 {copiedCode ? <Check size={14} className="text-[#1F7A4D]" /> : <Copy size={14} />}
                 {copiedCode ? 'Copiado' : 'Copiar código'}
@@ -103,11 +103,11 @@ export function InviteModal({
           </div>
 
           <div>
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#8B95A5]">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#64748B]">
               Enlace directo
             </span>
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#D9E0EA] bg-[#F6F8FB] px-4 py-2.5">
-              <span className="truncate text-xs font-mono text-[#4A5568]">{joinUrl}</span>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2.5">
+              <span className="truncate text-xs font-mono text-[#334155]">{joinUrl}</span>
               <Button type="button" variant="outline" size="sm" className="shrink-0 gap-2" onClick={copyLink}>
                 {copiedLink ? <Check size={14} className="text-[#1F7A4D]" /> : <Copy size={14} />}
                 {copiedLink ? 'Copiado' : 'Copiar link'}

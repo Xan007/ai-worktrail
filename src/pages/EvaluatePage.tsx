@@ -122,10 +122,10 @@ export function EvaluatePage() {
     <main className="page-fade" style={{ maxWidth: 1040, margin: '0 auto', padding: '32px 24px' }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2332', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
           Evaluador de pruebas
         </h1>
-        <p style={{ fontSize: 14, color: '#4A5568', margin: 0 }}>
+        <p style={{ fontSize: 14, color: '#334155', margin: 0 }}>
           Pega URLs para calificar cada chat por separado y todos combinados. No se guarda nada.
         </p>
       </div>
@@ -133,7 +133,7 @@ export function EvaluatePage() {
       {/* Input */}
       <div
         style={{
-          border: '1px solid #D9E0EA',
+          border: '1px solid #E2E8F0',
           borderRadius: 8,
           padding: 20,
           marginBottom: 32,
@@ -141,7 +141,7 @@ export function EvaluatePage() {
         }}
       >
         <form onSubmit={handleEvaluate}>
-          <label htmlFor="chat-urls" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#4A5568', marginBottom: 6 }}>
+          <label htmlFor="chat-urls" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#334155', marginBottom: 6 }}>
             URLs de chats (hasta 8, una por línea)
           </label>
           <textarea
@@ -152,20 +152,20 @@ export function EvaluatePage() {
             style={{
               width: '100%',
               minHeight: 100,
-              border: '1px solid #D9E0EA',
+              border: '1px solid #E2E8F0',
               borderRadius: 6,
               padding: '10px 12px',
               fontSize: 13,
               fontFamily: 'IBM Plex Mono, monospace',
-              color: '#1A2332',
+              color: '#0F172A',
               background: '#FFFFFF',
               outline: 'none',
               boxSizing: 'border-box',
               resize: 'vertical',
               transition: 'border-color 150ms, box-shadow 150ms',
             }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = '#1E5AA8'; e.currentTarget.style.boxShadow = '0 0 0 3px #EAF1F9'; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = '#D9E0EA'; e.currentTarget.style.boxShadow = 'none'; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#0077CC'; e.currentTarget.style.boxShadow = '0 0 0 3px #E0F2FE'; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = 'none'; }}
           />
           <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
@@ -173,7 +173,7 @@ export function EvaluatePage() {
               disabled={loading || !urls.trim()}
               style={{
                 height: 38,
-                background: loading ? '#8B95A5' : '#1E5AA8',
+                background: loading ? '#64748B' : '#0077CC',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: 6,
@@ -184,13 +184,13 @@ export function EvaluatePage() {
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'background 150ms ease-out',
               }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#174A8C'; }}
-              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#1E5AA8'; }}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#0066B3'; }}
+              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#0077CC'; }}
             >
               {loading ? 'Evaluando...' : 'Evaluar'}
             </button>
             {loading && (
-              <span style={{ fontSize: 13, color: '#8B95A5' }}>
+              <span style={{ fontSize: 13, color: '#64748B' }}>
                 Procesando chats...
               </span>
             )}
@@ -200,19 +200,19 @@ export function EvaluatePage() {
 
       {/* Results */}
       {error && (
-        <div style={{ marginBottom: 24, padding: '10px 14px', background: '#FBEDEB', borderLeft: '3px solid #B3372F', borderRadius: 4, fontSize: 13, color: '#1A2332' }}>
+        <div style={{ marginBottom: 24, padding: '10px 14px', background: '#FBEDEB', borderLeft: '3px solid #B3372F', borderRadius: 4, fontSize: 13, color: '#0F172A' }}>
           {error}
         </div>
       )}
 
       {failedUrls.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A2332', marginBottom: 12 }}>URLs no procesadas</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>URLs no procesadas</h2>
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
             {failedUrls.map((f, fi) => (
               <div key={fi} style={{ padding: '10px 14px', background: '#FBF3E7', borderLeft: '3px solid #B45309', borderRadius: 4, fontSize: 13 }}>
                 <span style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#B45309' }}>{f.url}</span>
-                <div style={{ marginTop: 4, color: '#1A2332' }}>{f.error}</div>
+                <div style={{ marginTop: 4, color: '#0F172A' }}>{f.error}</div>
               </div>
             ))}
           </div>
@@ -225,22 +225,22 @@ export function EvaluatePage() {
           {results.combined && (
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A2332', margin: 0 }}>Combinado</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', margin: 0 }}>Combinado</h2>
                 <span
                   style={{
-                    background: '#EAF1F9',
-                    color: '#1E5AA8',
+                    background: '#E0F2FE',
+                    color: '#0077CC',
                     borderRadius: 4,
                     padding: '2px 8px',
                     fontSize: 11,
                     fontWeight: 600,
-                    border: '1px solid #B8D0EA',
+                    border: '1px solid #93C5FD',
                   }}
                 >
                   Análisis conjunto
                 </span>
               </div>
-              <div style={{ border: '2px solid #1E5AA8', borderRadius: 8, padding: 0 }}>
+              <div style={{ border: '2px solid #0077CC', borderRadius: 8, padding: 0 }}>
                 <ScoreBlock
                   analysis={results.combined}
                   storageKey="evaluate-combined"
@@ -252,7 +252,7 @@ export function EvaluatePage() {
           {/* Individual */}
           {results.individual.length > 0 && (
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A2332', marginBottom: 12 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>
                 Chats individuales
               </h2>
               {results.individual.map((a, i) => (
@@ -270,16 +270,16 @@ export function EvaluatePage() {
       {!results && !loading && (
         <div
           style={{
-            border: '1px dashed #D9E0EA',
+            border: '1px dashed #E2E8F0',
             borderRadius: 8,
             padding: '40px 24px',
             textAlign: 'center',
           }}
         >
-          <p style={{ fontSize: 14, color: '#4A5568', fontWeight: 500, margin: 0 }}>
+          <p style={{ fontSize: 14, color: '#334155', fontWeight: 500, margin: 0 }}>
             Pega URLs arriba y presiona "Evaluar"
           </p>
-          <p style={{ fontSize: 13, color: '#8B95A5', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 13, color: '#64748B', margin: '4px 0 0' }}>
             Los resultados aparecerán aquí sin guardarse.
           </p>
         </div>

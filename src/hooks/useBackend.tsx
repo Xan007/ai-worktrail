@@ -38,13 +38,43 @@ function BackendProviderInner({ children }: { children: ReactNode }) {
       createBackendClient(
         () => {
           if (!isLoaded) return Promise.resolve(null);
-          return getToken().catch(() => null);
+          // clockSkewInSeconds compensates for minor clock differences
+          // between Clerk and Supabase servers (avoids PGRST303 'JWT not yet valid')
+          return getToken({ clockSkewInSeconds: 5 }).catch(() => null);
         },
       ),
     [getToken, isLoaded],
   );
   const value = useMemo(() => ({ client }), [client]);
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;
+}
+
+/**
+ * Fetch the current user's profile via direct query.
+ * RLS policy `users_select_self_or_related` ensures the user
+ * can only read their own row (matched by fn_requesting_user_id()).
+ */
+async function fetchProfileDirectly(
+  client: ReturnType<typeof createBackendClient>,
+  userId: string,
+): Promise<UserProfile | null> {
+  const { data, error } = await client
+    .from('users')
+    .select('id, role, name, email, avatar_url')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) {
+    console.error('Error fetching profile:', error);
+    return null;
+  }
+  if (!data) return null;
+  return {
+    id: data.id,
+    role: data.role,
+    name: data.name,
+    email: data.email,
+    avatar_url: data.avatar_url ?? null,
+  };
 }
 
 function ProfileProviderInner({ children }: { children: ReactNode }) {
@@ -54,69 +84,20 @@ function ProfileProviderInner({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
-    if (!authLoaded || !isSignedIn || !user) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-
-    const fullNameFromClerk = user.fullName?.trim() || [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
-    const clerkEmail = (user.primaryEmailAddress?.emailAddress ?? user.emailAddresses?.[0]?.emailAddress ?? '').trim();
-    const emailHandle = clerkEmail ? clerkEmail.split('@')[0] : '';
-    const formattedEmailHandle = emailHandle
-      ? emailHandle.replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-      : '';
-    const clerkName = fullNameFromClerk || user.username?.trim() || formattedEmailHandle || 'Estudiante';
-    const clerkAvatar = user.imageUrl ?? null;
-
+  // Helper: parse profile from localStorage safely
+  const localStorageProfile = (() => {
     try {
-      const { data, error } = await client
-        .from('users')
-        .select('id, role, name, email, avatar_url')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
+      if (!user) return null;
+      const cached = localStorage.getItem(`awt_profile_${user.id}`);
+      if (cached) {
+        const parsed = JSON.parse(cached) as UserProfile;
+        if (parsed?.id === user.id && parsed?.role) return parsed;
       }
+    } catch {}
+    return null;
+  });
 
-      if (data) {
-        const isPlaceholderName = !data.name || data.name === 'Sin nombre' || data.name.trim() === '' || data.name === 'Estudiante';
-        const shouldUpdateName = isPlaceholderName && clerkName !== 'Estudiante';
-        const shouldUpdateEmail = !data.email && Boolean(clerkEmail);
-        const shouldUpdateAvatar = clerkAvatar && (data as { avatar_url?: string | null }).avatar_url !== clerkAvatar;
-
-        if (shouldUpdateName || shouldUpdateEmail || shouldUpdateAvatar) {
-          try {
-            const nextName = shouldUpdateName ? clerkName : data.name;
-            const nextEmail = clerkEmail || data.email;
-            const nextAvatar = shouldUpdateAvatar ? clerkAvatar : (data as { avatar_url?: string | null }).avatar_url;
-            const updatePayload: Record<string, unknown> = {};
-            if (shouldUpdateName) updatePayload.name = nextName;
-            if (shouldUpdateEmail) updatePayload.email = nextEmail;
-            if (shouldUpdateAvatar) updatePayload.avatar_url = nextAvatar;
-            await client.from('users').update(updatePayload).eq('id', user.id);
-            data.name = nextName;
-            data.email = nextEmail;
-            (data as { avatar_url?: string | null }).avatar_url = nextAvatar as string | null;
-          } catch {
-            /* ignore background update failure */
-          }
-        }
-        setProfile((data as UserProfile) ?? null);
-      } else {
-        setProfile(null);
-      }
-    } catch (err) {
-      console.error('Unexpected error loading profile:', err);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, authLoaded, isSignedIn, client]);
-
+  // On mount: fetch profile via RPC (avoids PostgREST UUID casting issues)
   useEffect(() => {
     let cancelled = false;
     if (!authLoaded || !userLoaded) return;
@@ -128,18 +109,29 @@ function ProfileProviderInner({ children }: { children: ReactNode }) {
     setLoading(true);
     (async () => {
       try {
-        const { data, error } = await client
-          .from('users')
-          .select('id, role, name, email, avatar_url')
-          .eq('id', user.id)
-          .maybeSingle();
+        const dbProfile = await fetchProfileDirectly(client, user!.id);
         if (cancelled) return;
-        if (error) console.error('Error fetching user profile:', error);
-        setProfile(data ? (data as UserProfile) : null);
+
+        if (dbProfile) {
+          setProfile(dbProfile);
+          // Persist to localStorage for future fast loads
+          try {
+            localStorage.setItem(`awt_profile_${user.id}`, JSON.stringify(dbProfile));
+            localStorage.setItem(`awt_user_role_${user.id}`, dbProfile.role);
+          } catch {}
+        } else {
+          // Fallback: try localStorage profile as safety net
+          const cached = localStorageProfile();
+          if (cached) setProfile(cached);
+          else setProfile(null);
+        }
       } catch (err: unknown) {
         if (cancelled) return;
-        console.error('Unexpected error loading profile:', err);
-        setProfile(null);
+        console.error('Unexpected error loading profile from DB:', err);
+        // Fallback: try localStorage profile as safety net
+        const cached = localStorageProfile();
+        if (cached) setProfile(cached);
+        else setProfile(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -148,7 +140,34 @@ function ProfileProviderInner({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user, userLoaded, authLoaded, isSignedIn, client]);
+  }, [user, authLoaded, isSignedIn, userLoaded, client]);
+
+  const refresh = useCallback(async () => {
+    if (!authLoaded || !isSignedIn || !user) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const dbProfile = await fetchProfileDirectly(client, user!.id);
+      if (dbProfile) {
+        setProfile(dbProfile);
+        // Sync to localStorage so future loads are fast
+        try {
+          localStorage.setItem(`awt_profile_${user.id}`, JSON.stringify(dbProfile));
+          localStorage.setItem(`awt_user_role_${user.id}`, dbProfile.role);
+        } catch {}
+      } else {
+        setProfile(null);
+      }
+    } catch (err) {
+      console.error('Unexpected error loading profile:', err);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, authLoaded, isSignedIn, client]);
 
   const value = useMemo(
     () => ({ profile, loading, refresh, setProfile }),
@@ -179,8 +198,8 @@ export function RequireProfile({ children }: { children: ReactNode }) {
     return (
       <main className="mx-auto max-w-[1040px] px-6 py-8" aria-busy="true">
         <div className="space-y-4 animate-pulse">
-          <div className="h-4 w-32 rounded bg-[#EAF1F9]" />
-          <div className="h-28 rounded-xl border border-[#D9E0EA] bg-white p-6" />
+          <div className="h-4 w-32 rounded bg-[#E0F2FE]" />
+          <div className="h-28 rounded-xl border border-[#E2E8F0] bg-white p-6" />
         </div>
       </main>
     );
@@ -191,49 +210,27 @@ export function RequireProfile({ children }: { children: ReactNode }) {
     return <Navigate to={`/login?redirect_url=${redirectUrl}`} replace />;
   }
 
-  // Dual read: si localStorage ya tiene perfil (guardado en ambos), no bloquear por DB lenta
-  const hasLocalProfile = (() => {
-    try {
-      if (!user) return false;
-      const cached = localStorage.getItem(`awt_profile_${user.id}`);
-      if (cached) {
-        const parsed = JSON.parse(cached) as { id?: string; role?: string };
-        if (parsed?.id === user.id && (parsed?.role === 'teacher' || parsed?.role === 'student' || parsed?.role === 'monitor')) return true;
-      }
-      const role = localStorage.getItem(`awt_user_role_${user.id}`);
-      if (role === 'teacher' || role === 'student' || role === 'monitor') return true;
-      if (localStorage.getItem(`awt_onboarding_done_${user.id}`) === 'true') return true;
-    } catch {}
-    return false;
-  })();
-
   if (loading) {
-    if (hasLocalProfile && !profile) {
-      return <SignedIn>{children}</SignedIn>;
-    }
     return (
       <main className="mx-auto max-w-[1040px] px-6 py-8" aria-busy="true">
         <div className="space-y-4 animate-pulse">
-          <div className="h-4 w-32 rounded bg-[#EAF1F9]" />
-          <div className="h-28 rounded-xl border border-[#D9E0EA] bg-white p-6" />
-          <div className="h-48 rounded-xl border border-[#D9E0EA] bg-white p-6" />
+          <div className="h-4 w-32 rounded bg-[#E0F2FE]" />
+          <div className="h-28 rounded-xl border border-[#E2E8F0] bg-white p-6" />
+          <div className="h-48 rounded-xl border border-[#E2E8F0] bg-white p-6" />
         </div>
       </main>
     );
   }
 
-  if (!profile) {
-    if (hasLocalProfile) return <SignedIn>{children}</SignedIn>;
-    return <Navigate to="/onboarding" replace />;
-  }
+  if (!profile) return <Navigate to="/onboarding" replace />;
 
   return <SignedIn>{children}</SignedIn>;
 }
 
 /**
  * Proveedores globales. Debe montarse dentro de <ClerkProvider>.
- * El perfil solo se carga con sesión activa; los visitantes anónimos
- * navegan las páginas públicas sin él.
+ * El perfil se carga desde la BD; si no existe, el usuario pasa por onboarding.
+ * Los visitantes anónimos navegan las páginas públicas sin él.
  */
 export function AppProviders({ children }: { children: ReactNode }) {
   return (

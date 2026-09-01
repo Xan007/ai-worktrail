@@ -119,21 +119,21 @@ export function JoinPage() {
       <div className="mb-6">
         <Link
           to="/courses"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8B95A5] hover:text-[#1A2332]"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#64748B] hover:text-[#0F172A]"
         >
           <ArrowLeft size={14} /> Volver a mis cursos
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#D9E0EA] bg-white shadow-sm">
-        <div className="border-b border-[#D9E0EA] bg-[#F8FAFD] px-6 py-5">
+      <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+        <div className="border-b border-[#E2E8F0] bg-[#F8FAFD] px-6 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-[#EAF1F9] text-[#1E5AA8]">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-[#E0F2FE] text-[#0077CC]">
               <UserPlus size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-[#1A2332]">Unirme a un curso</h1>
-              <p className="text-xs text-[#4A5568]">
+              <h1 className="text-lg font-bold tracking-tight text-[#0F172A]">Unirme a un curso</h1>
+              <p className="text-xs text-[#334155]">
                 Ingresa a la clase compartida por tu docente para enviar tus tareas.
               </p>
             </div>
@@ -167,33 +167,33 @@ export function JoinPage() {
           )}
 
           {loadingPreview && (
-            <div className="space-y-3 rounded-lg border border-[#D9E0EA] bg-[#F8FAFD] p-5">
+            <div className="space-y-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFD] p-5">
               <Skeleton className="h-5 w-3/4" />
               <Skeleton className="h-4 w-1/2" />
             </div>
           )}
 
           {errorMsg && (
-            <div className="rounded-lg border-l-4 border-[#B3372F] bg-[#FBEDEB] p-4 text-sm text-[#1A2332] flex items-start gap-3">
+            <div className="rounded-lg border-l-4 border-[#B3372F] bg-[#FBEDEB] p-4 text-sm text-[#0F172A] flex items-start gap-3">
               <ShieldAlert size={18} className="text-[#B3372F] shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-[#B3372F]">Aviso</p>
-                <p className="text-xs text-[#4A5568] mt-0.5">{errorMsg}</p>
+                <p className="text-xs text-[#334155] mt-0.5">{errorMsg}</p>
               </div>
             </div>
           )}
 
           {courseInfo && !joinResult && (
             <div className="space-y-5">
-              <div className="rounded-lg border border-[#D9E0EA] bg-[#F8FAFD] p-5">
+              <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFD] p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <span className="inline-block rounded bg-[#EAF1F9] px-2 py-0.5 text-[11px] font-semibold text-[#1E5AA8] mb-2">
+                    <span className="inline-block rounded bg-[#E0F2FE] px-2 py-0.5 text-[11px] font-semibold text-[#0077CC] mb-2">
                       Curso encontrado
                     </span>
-                    <h2 className="text-base font-bold text-[#1A2332]">{courseInfo.name}</h2>
+                    <h2 className="text-base font-bold text-[#0F172A]">{courseInfo.name}</h2>
                     {courseInfo.is_enrollment_locked && (
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#4A5568]">
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#334155]">
                         <span className="flex items-center gap-1 text-[#B3372F] font-semibold">
                           <Lock size={14} /> Inscripciones bloqueadas
                         </span>
@@ -255,8 +255,8 @@ export function JoinPage() {
                     <CheckCircle size={28} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[#1A2332]">¡Ya eres parte de {joinResult.name}!</h2>
-                    <p className="mt-1 text-xs text-[#4A5568]">
+                    <h2 className="text-lg font-bold text-[#0F172A]">¡Ya eres parte de {joinResult.name}!</h2>
+                    <p className="mt-1 text-xs text-[#334155]">
                       Tu inscripción fue aprobada de forma inmediata. Ya puedes acceder al contenido y tareas.
                     </p>
                   </div>
@@ -272,8 +272,8 @@ export function JoinPage() {
                     <Clock size={28} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[#1A2332]">Solicitud enviada a {joinResult.name}</h2>
-                    <p className="mt-1 text-xs text-[#4A5568]">
+                    <h2 className="text-lg font-bold text-[#0F172A]">Solicitud enviada a {joinResult.name}</h2>
+                    <p className="mt-1 text-xs text-[#334155]">
                       Tu solicitud quedó en estado <strong>pendiente</strong>. El docente la revisará para darte acceso al curso.
                     </p>
                   </div>

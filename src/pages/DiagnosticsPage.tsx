@@ -58,10 +58,10 @@ export function DiagnosticsPage() {
     <div className="page-fade" style={{ maxWidth: 1040, margin: '0 auto', padding: '32px 24px' }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A2332', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
           Diagnóstico
         </h1>
-        <p style={{ fontSize: 14, color: '#4A5568', margin: 0 }}>
+        <p style={{ fontSize: 14, color: '#334155', margin: 0 }}>
           Verifica la configuración de seguridad de la base de datos.
         </p>
       </div>
@@ -73,7 +73,7 @@ export function DiagnosticsPage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '16px 20px',
-          border: '1px solid #D9E0EA',
+          border: '1px solid #E2E8F0',
           borderRadius: 8,
           marginBottom: 24,
           background: '#FAFBFC',
@@ -83,16 +83,16 @@ export function DiagnosticsPage() {
       >
         <div style={{ display: 'flex', gap: 20 }}>
           <div>
-            <span style={{ fontSize: 12, color: '#8B95A5', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>OK</span>
+            <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>OK</span>
             <span style={{ fontSize: 20, fontWeight: 700, color: '#1F7A4D', marginLeft: 8, fontFamily: 'IBM Plex Mono, monospace' }}>{passCount}</span>
           </div>
           <div>
-            <span style={{ fontSize: 12, color: '#8B95A5', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Fallo</span>
+            <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Fallo</span>
             <span style={{ fontSize: 20, fontWeight: 700, color: '#B3372F', marginLeft: 8, fontFamily: 'IBM Plex Mono, monospace' }}>{failCount}</span>
           </div>
           <div>
-            <span style={{ fontSize: 12, color: '#8B95A5', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total</span>
-            <span style={{ fontSize: 20, fontWeight: 700, color: '#1A2332', marginLeft: 8, fontFamily: 'IBM Plex Mono, monospace' }}>{checks.length}</span>
+            <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#0F172A', marginLeft: 8, fontFamily: 'IBM Plex Mono, monospace' }}>{checks.length}</span>
           </div>
         </div>
         <button
@@ -100,7 +100,7 @@ export function DiagnosticsPage() {
           disabled={running}
           style={{
             height: 38,
-            background: running ? '#8B95A5' : '#1E5AA8',
+            background: running ? '#64748B' : '#0077CC',
             color: '#FFFFFF',
             border: 'none',
             borderRadius: 6,
@@ -111,15 +111,15 @@ export function DiagnosticsPage() {
             cursor: running ? 'not-allowed' : 'pointer',
             transition: 'background 150ms ease-out',
           }}
-          onMouseEnter={(e) => { if (!running) e.currentTarget.style.background = '#174A8C'; }}
-          onMouseLeave={(e) => { if (!running) e.currentTarget.style.background = '#1E5AA8'; }}
+          onMouseEnter={(e) => { if (!running) e.currentTarget.style.background = '#0066B3'; }}
+          onMouseLeave={(e) => { if (!running) e.currentTarget.style.background = '#0077CC'; }}
         >
           {running ? 'Ejecutando...' : 'Ejecutar comprobaciones'}
         </button>
       </div>
 
       {/* Checks list */}
-      <div style={{ border: '1px solid #D9E0EA', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
         {checks.map((check, pos) => (
           <div
             key={check.name}
@@ -128,7 +128,7 @@ export function DiagnosticsPage() {
               alignItems: 'flex-start',
               gap: 12,
               padding: '14px 16px',
-              borderBottom: pos < checks.length - 1 ? '1px solid #D9E0EA' : 'none',
+              borderBottom: pos < checks.length - 1 ? '1px solid #E2E8F0' : 'none',
             }}
           >
             <span
@@ -141,13 +141,13 @@ export function DiagnosticsPage() {
                 background:
                   check.status === 'pass' ? '#1F7A4D' :
                   check.status === 'fail' ? '#B3372F' :
-                  '#D9E0EA',
+                  '#E2E8F0',
                 animation: check.status === 'pending' ? 'pulse 1.5s infinite' : 'none',
               }}
             />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#1A2332' }}>{check.name}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#0F172A' }}>{check.name}</span>
                 {check.status !== 'pending' && (
                   <span
                     style={{
@@ -163,7 +163,7 @@ export function DiagnosticsPage() {
                   </span>
                 )}
               </div>
-              <p style={{ fontSize: 13, color: '#4A5568', margin: 0 }}>{check.detail}</p>
+              <p style={{ fontSize: 13, color: '#334155', margin: 0 }}>{check.detail}</p>
             </div>
           </div>
         ))}

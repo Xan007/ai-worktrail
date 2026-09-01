@@ -30,10 +30,10 @@ function CriterionAccordion({ criterion }: { criterion: Criterion }) {
         }`}
       >
         <div className="flex flex-1 items-center justify-between min-w-0 gap-3">
-          <span className="truncate text-sm font-semibold text-[#1A2332]">
+          <span className="truncate text-sm font-semibold text-[#0F172A]">
             {criterion.name}
           </span>
-          <span className="font-mono text-xs text-[#8B95A5] shrink-0">
+          <span className="font-mono text-xs text-[#64748B] shrink-0">
             Peso: {criterion.weight}%
           </span>
         </div>
@@ -54,17 +54,17 @@ function CriterionAccordion({ criterion }: { criterion: Criterion }) {
             >
               {earned}/{criterion.weight}
             </span>
-            {open ? <ChevronUp size={16} className="text-[#8B95A5]" /> : <ChevronDown size={16} className="text-[#8B95A5]" />}
+            {open ? <ChevronUp size={16} className="text-[#64748B]" /> : <ChevronDown size={16} className="text-[#64748B]" />}
           </div>
         </div>
       </button>
 
       {open && (
         <div className="border-t border-[#EEF1F6] bg-[#FAFBFC] px-5 py-4 space-y-3">
-          <p className="text-xs italic text-[#4A5568]">
+          <p className="text-xs italic text-[#334155]">
             {criterion.band.description}
           </p>
-          <p className="text-sm text-[#1A2332] leading-relaxed">
+          <p className="text-sm text-[#0F172A] leading-relaxed">
             {criterion.explanation}
           </p>
           {criterion.evidence.length > 0 && (
@@ -74,12 +74,12 @@ function CriterionAccordion({ criterion }: { criterion: Criterion }) {
                   key={`ev-${ev.chat}-${ev.message}-${ev.quote.slice(0, 30)}`}
                   className="flex items-start gap-2.5 rounded-lg border border-[#EEF1F6] bg-white p-3 shadow-2xs"
                 >
-                  <Quote size={14} className="text-[#8B95A5] shrink-0 mt-0.5" />
+                  <Quote size={14} className="text-[#64748B] shrink-0 mt-0.5" />
                   <div className="flex-1 space-y-1">
-                    <span className="inline-block rounded border border-[#D9E0EA] bg-[#F6F8FB] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#8B95A5]">
+                    <span className="inline-block rounded border border-[#E2E8F0] bg-[#F8FAFC] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#64748B]">
                       Chat {ev.chat} · M{ev.message}
                     </span>
-                    <p className="text-xs text-[#1A2332] leading-relaxed">"{ev.quote}"</p>
+                    <p className="text-xs text-[#0F172A] leading-relaxed">"{ev.quote}"</p>
                   </div>
                 </div>
               ))}
@@ -95,19 +95,19 @@ export function ScoreBlock({ analysis }: ScoreBlockProps) {
   return (
     <div className="space-y-6">
       {/* 3. Resumen de evaluación con borde de acento a la izquierda */}
-      <div className="rounded-xl border border-[#D9E0EA] border-l-4 border-l-[#1E5AA8] bg-white p-5 shadow-xs">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-[#1E5AA8] mb-1">
+      <div className="rounded-xl border border-[#E2E8F0] border-l-4 border-l-[#0077CC] bg-white p-5 shadow-xs">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[#0077CC] mb-1">
           Resumen de evaluación
         </h3>
-        <p className="text-sm text-[#1A2332] leading-relaxed">
+        <p className="text-sm text-[#0F172A] leading-relaxed">
           {analysis.summary}
         </p>
       </div>
 
       {/* 4. Desglose por criterio */}
-      <div className="overflow-hidden rounded-xl border border-[#D9E0EA] bg-white shadow-xs">
+      <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
         <div className="border-b border-[#EEF1F6] bg-[#F8FAFD] px-5 py-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#8B95A5]">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
             Desglose por criterio
           </h3>
         </div>
@@ -121,7 +121,7 @@ export function ScoreBlock({ analysis }: ScoreBlockProps) {
       {/* 5. Fortalezas y Para mejorar con íconos */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Fortalezas */}
-        <div className="rounded-xl border border-[#D9E0EA] bg-white p-5 shadow-xs space-y-3">
+        <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-3">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={16} className="text-[#1F7A4D]" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D]">
@@ -130,7 +130,7 @@ export function ScoreBlock({ analysis }: ScoreBlockProps) {
           </div>
           <ul className="space-y-2">
             {analysis.strengths.map((s) => (
-              <li key={`strength-${s.slice(0, 40)}`} className="flex items-start gap-2 text-xs text-[#1A2332] leading-relaxed">
+              <li key={`strength-${s.slice(0, 40)}`} className="flex items-start gap-2 text-xs text-[#0F172A] leading-relaxed">
                 <CheckCircle2 size={14} className="text-[#1F7A4D] shrink-0 mt-0.5" />
                 <span>{s}</span>
               </li>
@@ -139,7 +139,7 @@ export function ScoreBlock({ analysis }: ScoreBlockProps) {
         </div>
 
         {/* Para mejorar */}
-        <div className="rounded-xl border border-[#D9E0EA] bg-white p-5 shadow-xs space-y-3">
+        <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-3">
           <div className="flex items-center gap-2">
             <Lightbulb size={16} className="text-[#B45309]" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#B45309]">
@@ -148,7 +148,7 @@ export function ScoreBlock({ analysis }: ScoreBlockProps) {
           </div>
           <ul className="space-y-2">
             {analysis.improvements.map((s) => (
-              <li key={`improvement-${s.slice(0, 40)}`} className="flex items-start gap-2 text-xs text-[#1A2332] leading-relaxed">
+              <li key={`improvement-${s.slice(0, 40)}`} className="flex items-start gap-2 text-xs text-[#0F172A] leading-relaxed">
                 <Lightbulb size={14} className="text-[#B45309] shrink-0 mt-0.5" />
                 <span>{s}</span>
               </li>

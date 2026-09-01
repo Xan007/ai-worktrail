@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeftRight, BookOpen, CheckCircle, ChevronRight, Clock, GraduationCap, Plus, Users, XCircle } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { EmptyState } from '@/components/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -13,8 +13,8 @@ import { useBackendClient, useProfileState } from '@/hooks/useBackend';
 import { cancelMyEnrollment, createCourse as createCourseApi, joinCourse as joinCourseApi, listMyCourses, listTasks } from '@/lib/data';
 import type { Course, EnrollmentMode, Task } from '@/lib/mockdata';
 import { getEnrollmentLabel } from '@/lib/mockdata';
-import { TeacherOnboardingChecklist } from '@/components/TeacherOnboardingChecklist';
 import { InviteModal } from '@/components/InviteModal';
+import { TeacherOnboardingChecklist } from '@/components/TeacherOnboardingChecklist';
 import { showSuccessNoProgress } from '@/lib/toast';
 
 function CourseRow({
@@ -30,14 +30,14 @@ function CourseRow({
 
   if (isPending) {
     return (
-      <div className="course-row flex min-h-[72px] flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D9E0EA] bg-[#F8FAFD] px-5 py-4 last:border-b-0">
+      <div className="course-row flex min-h-[72px] flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] bg-[#F8FAFD] px-5 py-4 last:border-b-0">
         <div className="flex items-center gap-4 min-w-0 flex-1">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-[#EAF1F9] text-[#1E5AA8]">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-[#E0F2FE] text-[#0077CC]">
             <Clock size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[15px] font-semibold text-[#1A2332]">{course.name}</div>
-            <div className="mt-0.5 text-[12px] font-medium text-[#1E5AA8]">Solicitud enviada (esperando aprobación)</div>
+            <div className="truncate text-[15px] font-semibold text-[#0F172A]">{course.name}</div>
+            <div className="mt-0.5 text-[12px] font-medium text-[#0077CC]">Solicitud enviada (esperando aprobación)</div>
           </div>
         </div>
         <div className="flex items-center gap-3 self-end sm:self-center">
@@ -59,13 +59,13 @@ function CourseRow({
 
   if (isRejected) {
     return (
-      <div className="course-row flex min-h-[72px] flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D9E0EA] bg-white px-5 py-4 last:border-b-0">
+      <div className="course-row flex min-h-[72px] flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] bg-white px-5 py-4 last:border-b-0">
         <div className="flex items-center gap-4 min-w-0 flex-1">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-[#FBEDEB] text-[#B3372F]">
             <XCircle size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[15px] font-semibold text-[#1A2332]">{course.name}</div>
+            <div className="truncate text-[15px] font-semibold text-[#0F172A]">{course.name}</div>
             <div className="mt-0.5 text-[12px] text-[#B3372F]">Solicitud no aprobada</div>
           </div>
         </div>
@@ -75,7 +75,7 @@ function CourseRow({
             variant="ghost"
             size="sm"
             onClick={() => onCancelEnrollment(course.id)}
-            className="text-xs text-[#64748B] hover:text-[#1A2332]"
+            className="text-xs text-[#64748B] hover:text-[#0F172A]"
           >
             Descartar
           </Button>
@@ -89,22 +89,22 @@ function CourseRow({
   return (
     <Link
       to={`/courses/${course.id}`}
-      className="course-row group flex min-h-[72px] items-center gap-4 border-b border-[#D9E0EA] bg-white px-5 py-4 last:border-b-0 hover:bg-[#F8FAFD]"
+      className="course-row group flex min-h-[72px] items-center gap-4 border-b border-[#E2E8F0] bg-white px-5 py-4 last:border-b-0 hover:bg-[#F8FAFD]"
     >
-      <div className="relative flex size-10 shrink-0 items-center justify-center rounded-md bg-[#EAF1F9] text-[#1E5AA8]">
+      <div className="relative flex size-10 shrink-0 items-center justify-center rounded-md bg-[#E0F2FE] text-[#0077CC]">
         {isTeacher ? <BookOpen size={18} /> : <GraduationCap size={18} />}
         {isTeacher && pendingCount > 0 && (
           <span className="absolute -top-1 -right-1 flex size-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1E5AA8] opacity-75" />
-            <span className="relative inline-flex size-2.5 rounded-full bg-[#1E5AA8] ring-2 ring-white" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0077CC] opacity-75" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-[#0077CC] ring-2 ring-white" />
           </span>
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[15px] font-semibold text-[#1A2332] group-hover:text-[#1E5AA8]">{course.name}</div>
+        <div className="truncate text-[15px] font-semibold text-[#0F172A] group-hover:text-[#0077CC]">{course.name}</div>
       </div>
       <div className="flex items-center gap-3">
-        <ChevronRight className="shrink-0 text-[#8B95A5] transition-transform group-hover:translate-x-0.5 group-hover:text-[#1E5AA8]" size={17} />
+        <ChevronRight className="shrink-0 text-[#64748B] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0077CC]" size={17} />
       </div>
     </Link>
   );
@@ -139,7 +139,7 @@ function CreateCourseDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" className={`gap-2 ${highlight ? 'shadow-md ring-2 ring-[#1E5AA8] ring-offset-2' : ''}`}><Plus size={16} />Crear curso</Button>
+        <Button variant="default" className={`gap-2 ${highlight ? 'btn-checklist-highlight' : ''}`}><Plus size={16} />Crear curso</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
@@ -220,9 +220,9 @@ function CourseListSections({
 }: CourseListSectionsProps) {
   if (loading) {
     return (
-      <div className="rounded-lg border border-[#D9E0EA]">
+      <div className="rounded-lg border border-[#E2E8F0]">
         {[1, 2, 3].map((item) => (
-          <div key={item} className="flex h-[80px] items-center gap-4 border-b border-[#D9E0EA] px-5 last:border-0">
+          <div key={item} className="flex h-[80px] items-center gap-4 border-b border-[#E2E8F0] px-5 last:border-0">
             <Skeleton className="size-10 shrink-0" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-2/3" />
@@ -244,7 +244,7 @@ function CourseListSections({
       );
     }
     return (
-      <div className="overflow-hidden rounded-lg border border-[#D9E0EA] bg-white">
+      <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
         {teacherCourses.map((course) => (
           <CourseRow key={course.id} course={course} onCancelEnrollment={onCancelEnrollment} />
         ))}
@@ -265,7 +265,7 @@ function CourseListSections({
       <div className="space-y-6">
         {studentPendingCourses.length > 0 && (
           <section>
-            <div className="overflow-hidden rounded-lg border border-[#D9E0EA] bg-white">
+            <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
               {studentPendingCourses.map((course) => (
                 <CourseRow key={course.id} course={course} onCancelEnrollment={onCancelEnrollment} />
               ))}
@@ -275,7 +275,7 @@ function CourseListSections({
         {studentRejectedCourses.length > 0 && (
           <section>
             <h2 className="mb-2.5 text-sm font-semibold text-[#64748B]">Solicitudes no aceptadas</h2>
-            <div className="overflow-hidden rounded-lg border border-[#D9E0EA] bg-white">
+            <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
               {studentRejectedCourses.map((course) => (
                 <CourseRow key={course.id} course={course} onCancelEnrollment={onCancelEnrollment} />
               ))}
@@ -296,7 +296,7 @@ function CourseListSections({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#D9E0EA] bg-white">
+    <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
       {studentApprovedCourses.map((course) => (
         <CourseRow key={course.id} course={course} onCancelEnrollment={onCancelEnrollment} />
       ))}
@@ -306,6 +306,7 @@ function CourseListSections({
 
 export function CoursesPage() {
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const client = useBackendClient();
   const { profile, refresh: refreshProfile } = useProfileState();
   const navigate = useNavigate();
@@ -319,6 +320,9 @@ export function CoursesPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [hasTasksFromApi, setHasTasksFromApi] = useState(false);
+  const [checklistDb, setChecklistDb] = useState<{ dismissed: boolean; hasInvited: boolean; hasCourses: boolean; hasTasks: boolean } | null>(null);
+  const [checklistVersion, setChecklistVersion] = useState(0);
+  const refreshChecklist = useCallback(() => setChecklistVersion((v) => v + 1), []);
   const storageKey = useMemo(() => (user?.id ? `awt_courses_activeTab_${user.id}` : 'awt_courses_activeTab'), [user?.id]);
 
   useEffect(() => {
@@ -381,6 +385,23 @@ export function CoursesPage() {
     void load();
   }, [load]);
 
+  // Load checklist state from DB
+  useEffect(() => {
+    if (!user || !isSignedIn) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await client.rpc('fn_get_onboarding_checklist_state').maybeSingle();
+      if (cancelled || !data) return;
+      setChecklistDb({
+        dismissed: data.dismissed ?? false,
+        hasInvited: data.has_invited ?? false,
+        hasCourses: data.has_courses ?? false,
+        hasTasks: data.has_tasks ?? false,
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, isSignedIn, client, checklistVersion]);
+
   const teacherCourses = useMemo(() => courses.filter((c) => c.role === 'teacher'), [courses]);
   const studentCourses = useMemo(() => courses.filter((c) => c.role === 'student'), [courses]);
 
@@ -406,40 +427,21 @@ export function CoursesPage() {
 
   const shouldHighlightCreate = useMemo(() => {
     if (activeTab !== 'teacher') return false;
+    if (checklistDb === null) return false; // wait for DB
+    if (checklistDb.dismissed) return false;
     if (teacherCourses.length > 0) return false;
-    if (loading) return false;
-    try {
-      if (localStorage.getItem('awt_teacher_checklist_dismissed') === 'true') return false;
-    } catch {}
-    if (profile?.onboarding_dismissed) return false;
     return true;
-  }, [activeTab, teacherCourses.length, loading, profile?.onboarding_dismissed]);
+  }, [activeTab, teacherCourses.length, checklistDb]);
 
   const hasStudentsForChecklist = useMemo(() => {
     if (teacherCourses.length === 0) return false;
-    if (teacherCourses.some((c) => (c.pending_enrollments_count ?? 0) > 0)) return true;
-    try {
-      if (localStorage.getItem('awt_step_invited_done') === 'true') return true;
-      if (
-        teacherCourses.some(
-          (c) => localStorage.getItem(`awt_invite_clicked_${c.id}`) === 'true' || localStorage.getItem(`awt_invited_${c.id}`) === 'true',
-        )
-      )
-        return true;
-    } catch {}
-    if (profile?.onboarding_has_invited) return true;
-    return false;
-  }, [teacherCourses, profile?.onboarding_has_invited]);
+    return checklistDb?.hasInvited ?? false;
+  }, [teacherCourses, checklistDb]);
 
   const hasTasksForChecklist = useMemo(() => {
     if (hasTasksFromApi) return true;
-    if (teacherCourses.length === 0) return false;
-    try {
-      if (teacherCourses.some((c) => localStorage.getItem(`awt_task_clicked_${c.id}`) === 'true')) return true;
-    } catch {}
-    if (profile?.onboarding_has_created_task) return true;
-    return false;
-  }, [teacherCourses, hasTasksFromApi, profile?.onboarding_has_created_task]);
+    return checklistDb?.hasTasks ?? false;
+  }, [hasTasksFromApi, checklistDb]);
 
   useEffect(() => {
     if (teacherCourses.length === 0) {
@@ -463,6 +465,32 @@ export function CoursesPage() {
       cancelled = true;
     };
   }, [client, teacherCourses]);
+
+  // Checklist: compute current step
+  const checklistState = useMemo(() => {
+    if (activeTab !== 'teacher') return { currentStep: null as null, completedCount: 0 };
+    if (checklistDb === null) return { currentStep: null as null, completedCount: 0 };
+    if (checklistDb.dismissed) return { currentStep: null, completedCount: 0 };
+    // Derive from DB + live data
+    const hasCourses = teacherCourses.length > 0;
+    const hasStudents = checklistDb.hasInvited;
+    const hasTasks = hasTasksFromApi || checklistDb.hasTasks;
+    // Sequential: only count a step done if all prior steps are also done
+    let completedCount = 0;
+    if (hasCourses) completedCount = 1;
+    if (completedCount === 1 && hasStudents) completedCount = 2;
+    if (completedCount === 2 && hasTasks) completedCount = 3;
+    if (completedCount === 3) return { currentStep: null, completedCount: 3 };
+    const currentStep = !hasCourses ? 'course' as const : !hasStudents ? 'invite' as const : 'task' as const;
+    return { currentStep, completedCount };
+  }, [activeTab, teacherCourses.length, hasTasksFromApi, checklistDb]);
+
+  // Re-fetch checklist state when page regains focus (e.g. returning from CourseDetailPage)
+  useEffect(() => {
+    const onFocus = () => { if (user?.id && isSignedIn) setChecklistVersion((v) => v + 1); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user?.id, isSignedIn]);
 
   useEffect(() => {
     if (activeTab === 'requests' && studentPendingCourses.length === 0 && studentRejectedCourses.length === 0) {
@@ -535,8 +563,8 @@ export function CoursesPage() {
     <main className="page-fade mx-auto max-w-[1040px] px-6 py-8" aria-busy={loading}>
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
-          <h1 className="text-[26px] font-bold tracking-[-0.03em] text-[#1A2332]">Mis cursos</h1>
-          <p className="mt-1 text-sm text-[#4A5568]">Todo lo que enseñas y todo lo que estás aprendiendo.</p>
+          <h1 className="text-[26px] font-bold tracking-[-0.03em] text-[#0F172A]">Mis cursos</h1>
+          <p className="mt-1 text-sm text-[#334155]">Todo lo que enseñas y todo lo que estás aprendiendo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {(activeTab === 'student' || activeTab === 'requests') && <JoinCourseDialog onJoin={joinCourse} />}
@@ -551,36 +579,36 @@ export function CoursesPage() {
         </div>
       </div>
 
-      <div className="mb-6 flex items-center justify-between gap-4 border-b border-[#D9E0EA]">
+      <div className="mb-6 flex items-center justify-between gap-4 border-b border-[#E2E8F0]">
         <div className="flex items-center gap-2">
           {activeTab === 'teacher' && (
-            <div className="flex items-center gap-2 border-b-2 border-[#1E5AA8] px-4 py-2.5 text-sm font-semibold text-[#1E5AA8]">
+            <div className="flex items-center gap-2 border-b-2 border-[#0077CC] px-4 py-2.5 text-sm font-semibold text-[#0077CC]">
               <BookOpen size={16} />
               <span>Docencia</span>
-              <span className="rounded-full bg-[#EAF1F9] px-2 py-0.5 text-xs font-semibold text-[#1E5AA8]">{teacherCourses.length}</span>
-              {totalTeacherPending > 0 && <span className="size-2 rounded-full bg-[#1E5AA8]" title={`${totalTeacherPending} solicitudes pendientes`} />}
+              <span className="rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]">{teacherCourses.length}</span>
+              {totalTeacherPending > 0 && <span className="size-2 rounded-full bg-[#0077CC]" title={`${totalTeacherPending} solicitudes pendientes`} />}
             </div>
           )}
           {activeTab === 'student' && (
-            <div className="flex items-center gap-2 border-b-2 border-[#1E5AA8] px-4 py-2.5 text-sm font-semibold text-[#1E5AA8]">
+            <div className="flex items-center gap-2 border-b-2 border-[#0077CC] px-4 py-2.5 text-sm font-semibold text-[#0077CC]">
               <GraduationCap size={16} />
               <span>Inscrito</span>
-              <span className="rounded-full bg-[#EAF1F9] px-2 py-0.5 text-xs font-semibold text-[#1E5AA8]">{studentApprovedCourses.length}</span>
+              <span className="rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]">{studentApprovedCourses.length}</span>
             </div>
           )}
           {activeTab === 'requests' && (
-            <div className="flex items-center gap-2 border-b-2 border-[#1E5AA8] px-4 py-2.5 text-sm font-semibold text-[#1E5AA8]">
+            <div className="flex items-center gap-2 border-b-2 border-[#0077CC] px-4 py-2.5 text-sm font-semibold text-[#0077CC]">
               <Clock size={16} />
               <span>Solicitudes</span>
-              <span className="rounded-full bg-[#EAF1F9] px-2 py-0.5 text-xs font-semibold text-[#1E5AA8]">{studentPendingCourses.length + studentRejectedCourses.length}</span>
-              {studentPendingCourses.length > 0 && <span className="size-2 rounded-full bg-[#1E5AA8]" />}
+              <span className="rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]">{studentPendingCourses.length + studentRejectedCourses.length}</span>
+              {studentPendingCourses.length > 0 && <span className="size-2 rounded-full bg-[#0077CC]" />}
             </div>
           )}
           {activeTab !== 'requests' && (studentPendingCourses.length > 0 || studentRejectedCourses.length > 0) && (
             <button
               type="button"
               onClick={() => setActiveTab('requests')}
-              className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#D9E0EA] bg-white px-2.5 py-1 text-xs font-medium text-[#64748B] hover:border-[#1E5AA8] hover:text-[#1E5AA8] transition-colors"
+              className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-white px-2.5 py-1 text-xs font-medium text-[#64748B] hover:border-[#0077CC] hover:text-[#0077CC] transition-colors"
             >
               <Clock size={12} /> {studentPendingCourses.length} pendientes
             </button>
@@ -589,7 +617,7 @@ export function CoursesPage() {
             <button
               type="button"
               onClick={() => setActiveTab('student')}
-              className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#D9E0EA] bg-white px-2.5 py-1 text-xs font-medium text-[#64748B] hover:border-[#1E5AA8] hover:text-[#1E5AA8] transition-colors"
+              className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-white px-2.5 py-1 text-xs font-medium text-[#64748B] hover:border-[#0077CC] hover:text-[#0077CC] transition-colors"
             >
               Volver a Inscrito
             </button>
@@ -599,7 +627,7 @@ export function CoursesPage() {
         <button
           type="button"
           onClick={() => setActiveTab(activeTab === 'teacher' ? 'student' : 'teacher')}
-          className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#D9E0EA] bg-white px-3 py-1.5 text-xs font-medium text-[#64748B] transition-colors hover:border-[#1E5AA8] hover:text-[#1E5AA8]"
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-medium text-[#64748B] transition-colors hover:border-[#0077CC] hover:text-[#0077CC]"
           title={activeTab === 'teacher' ? 'Cambiar a vista Inscrito' : 'Cambiar a vista Docencia'}
           aria-label="Intercambiar vista"
         >
@@ -609,14 +637,14 @@ export function CoursesPage() {
       </div>
 
       {message && (
-        <div className="mb-5 flex items-center gap-2 rounded-md border-l-[3px] border-[#1F7A4D] bg-[#E8F4EE] px-4 py-3 text-sm text-[#1A2332]">
+        <div className="mb-5 flex items-center gap-2 rounded-md border-l-[3px] border-[#1F7A4D] bg-[#E8F4EE] px-4 py-3 text-sm text-[#0F172A]">
           <CheckCircle size={16} className="shrink-0 text-[#1F7A4D]" />
           <span>{message}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="mb-5 flex items-center gap-2 rounded-md border-l-[3px] border-[#B3372F] bg-[#FBEDEB] px-4 py-3 text-sm text-[#1A2332]">
+        <div className="mb-5 flex items-center gap-2 rounded-md border-l-[3px] border-[#B3372F] bg-[#FBEDEB] px-4 py-3 text-sm text-[#0F172A]">
           <AlertCircle size={16} className="shrink-0 text-[#B3372F]" />
           <span>{errorMsg}</span>
         </div>
@@ -635,10 +663,13 @@ export function CoursesPage() {
 
       {activeTab === 'teacher' && (
         <TeacherOnboardingChecklist
-          hasCourses={teacherCourses.length > 0}
-          hasStudents={hasStudentsForChecklist}
-          hasTasks={hasTasksForChecklist}
-          onCreateCourse={() => setCreateCourseOpen(true)}
+          loading={loading}
+          currentStep={checklistState.currentStep}
+          completedCount={checklistState.completedCount}
+          onDismiss={async () => {
+            await client.rpc('fn_dismiss_onboarding_checklist');
+            setChecklistDb((prev) => prev ? { ...prev, dismissed: true } : null);
+          }}
         />
       )}
     </main>

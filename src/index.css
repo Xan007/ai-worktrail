@@ -48,19 +48,29 @@
   --font-ibm-plex-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-ibm-plex-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  /* === AI WorkTrail custom palette === */
-  --primary-brand:    #1E5AA8;
-  --primary-hover:    #174A8C;
-  --primary-active:   #123B75;
-  --primary-subtle:   #EAF1F9;
+  /* === AI WorkTrail — Brand Palette === */
+  --blue:            #0077CC;
+  --blue-hover:      #0066B3;
+  --blue-active:     #004A80;
+  --light-blue:      #0EA5E9;
+  --dark-blue:       #004A80;
+  --black:           #0F172A;
+  --white:           #FFFFFF;
+  --light-grey:      #F8FAFC;
 
-  --ink:              #1A2332;
-  --ink-secondary:    #4A5568;
-  --ink-muted:        #8B95A5;
+  /* Semantic aliases */
+  --primary-brand:    #0077CC;
+  --primary-hover:    #0066B3;
+  --primary-active:   #004A80;
+  --primary-subtle:   #E0F2FE;
+
+  --ink:              #0F172A;
+  --ink-secondary:    #334155;
+  --ink-muted:        #64748B;
 
   --surface:          #FFFFFF;
-  --surface-alt:      #F6F8FB;
-  --border-color:     #D9E0EA;
+  --surface-alt:      #F8FAFC;
+  --border-color:     #E2E8F0;
 
   --success:          #1F7A4D;
   --success-bg:       #E8F4EE;
@@ -76,24 +86,25 @@
 
   /* Shadcn token overrides */
   --background:         #FFFFFF;
-  --foreground:         #1A2332;
+  --foreground:         #0F172A;
   --card:               #FFFFFF;
-  --card-foreground:    #1A2332;
+  --card-foreground:    #0F172A;
   --popover:            #FFFFFF;
-  --popover-foreground: #1A2332;
-  --primary:            #1E5AA8;
+  --popover-foreground: #0F172A;
+  --primary:            #0077CC;
   --primary-foreground: #FFFFFF;
-  --secondary:          #F6F8FB;
-  --secondary-foreground: #1A2332;
-  --muted:              #F6F8FB;
-  --muted-foreground:   #8B95A5;
-  --accent:             #EAF1F9;
-  --accent-foreground:  #1E5AA8;
+  --secondary:          #F8FAFC;
+  --secondary-foreground: #0F172A;
+  --muted:              #F8FAFC;
+  --muted-foreground:   #64748B;
+  --accent:             #E0F2FE;
+  --accent-foreground:  #0077CC;
   --destructive:        #B3372F;
   --destructive-foreground: #FFFFFF;
-  --border:             #D9E0EA;
-  --input:              #D9E0EA;
-  --ring:               #1E5AA8;
+  --border:             #E2E8F0;
+  --input:              #E2E8F0;
+  --ring:               #0EA5E9;
+  --focus-ring:         #0EA5E9;
   --radius:             6px;
 }
 
@@ -109,7 +120,7 @@
     font-family: 'IBM Plex Sans', system-ui, sans-serif;
     font-size: 15px;
     line-height: 1.6;
-    color: #1A2332;
+    color: #0F172A;
     background: #FFFFFF;
   }
   h1, h2, h3, h4, h5, h6 {
@@ -122,13 +133,13 @@
 }
 
 /* Utility overrides for brand colors */
-.text-ink { color: #1A2332; }
-.text-ink-secondary { color: #4A5568; }
-.text-ink-muted { color: #8B95A5; }
-.text-primary-brand { color: #1E5AA8; }
-.bg-surface-alt { background: #F6F8FB; }
-.bg-primary-subtle { background: #EAF1F9; }
-.border-brand { border-color: #D9E0EA; }
+.text-ink { color: #0F172A; }
+.text-ink-secondary { color: #334155; }
+.text-ink-muted { color: #64748B; }
+.text-primary-brand { color: #0077CC; }
+.bg-surface-alt { background: #F8FAFC; }
+.bg-primary-subtle { background: #E0F2FE; }
+.border-brand { border-color: #E2E8F0; }
 
 /* Page fade-in */
 .page-fade {
@@ -155,8 +166,8 @@
 }
 .card-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
-  border-color: #B8D0EA;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border-color: #93C5FD;
 }
 
 /* Course row hover */
@@ -176,8 +187,8 @@
 /* Hero pattern */
 .hero-pattern {
   background-image: 
-    linear-gradient(rgba(30, 90, 168, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30, 90, 168, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(0, 119, 204, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 119, 204, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -185,3 +196,32 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Focus ring — uses LightBlue for interactive focus indicators */
+.focus-ring:focus-visible {
+  outline: 2px solid #0EA5E9;
+  outline-offset: 2px;
+}
+
+/* Link styles */
+.link-blue {
+  color: #0077CC;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.link-blue:hover {
+  color: #0066B3;
+  text-decoration: underline;
+}
+
+/* Button highlight for checklist current step */
+.btn-checklist-highlight {
+  animation: btnHighlightPulse 2s ease-in-out infinite;
+  position: relative;
+}
+@keyframes btnHighlightPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(0, 119, 204, 0.08); }
+}
+
+

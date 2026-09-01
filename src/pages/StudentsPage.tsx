@@ -101,32 +101,32 @@ function EnrollmentRow({ enrollment, canManage, courseId, onRefresh, onMessage, 
   const avatarUrl = (enrollment.user as { avatar_url?: string | null }).avatar_url ?? null;
 
   return (
-    <div className='flex min-h-[72px] items-center gap-4 border-b border-[#D9E0EA] bg-white px-5 py-4 last:border-b-0 hover:bg-[#F8FAFD]'>
+    <div className='flex min-h-[72px] items-center gap-4 border-b border-[#E2E8F0] bg-white px-5 py-4 last:border-b-0 hover:bg-[#F8FAFD]'>
       {canManage && enrollment.status === 'pending' && onToggleSelect && (
         <input
           type="checkbox"
           checked={!!selected}
           onChange={() => onToggleSelect(enrollment.enrollment_id)}
-          className="size-4 shrink-0 accent-[#1E5AA8]"
+          className="size-4 shrink-0 accent-[#0077CC]"
           aria-label={`Seleccionar ${displayName}`}
         />
       )}
       {avatarUrl ? (
-        <img src={avatarUrl} alt={displayName} className='size-10 shrink-0 rounded-md object-cover border border-[#D9E0EA]' />
+        <img src={avatarUrl} alt={displayName} className='size-10 shrink-0 rounded-md object-cover border border-[#E2E8F0]' />
       ) : (
-        <span className='flex size-10 shrink-0 items-center justify-center rounded-md bg-[#EAF1F9] text-sm font-semibold text-[#1E5AA8]'>
+        <span className='flex size-10 shrink-0 items-center justify-center rounded-md bg-[#E0F2FE] text-sm font-semibold text-[#0077CC]'>
           {initials}
         </span>
       )}
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-[15px] font-semibold text-[#1A2332]'>{displayName}</div>
+        <div className='truncate text-[15px] font-semibold text-[#0F172A]'>{displayName}</div>
         {enrollment.user.email && (
           <div className='truncate text-xs text-[#64748B]'>{enrollment.user.email}</div>
         )}
       </div>
 
       {(enrollment.user.userRole === 'monitor' || (enrollment.user as unknown as { role?: string }).role === 'monitor') && (
-        <span className='rounded-md bg-[#EAF1F9] px-2.5 py-1 text-[12px] font-medium text-[#1E5AA8]'>Monitor</span>
+        <span className='rounded-md bg-[#E0F2FE] px-2.5 py-1 text-[12px] font-medium text-[#0077CC]'>Monitor</span>
       )}
 
       {canManage && enrollment.status === 'pending' && (
@@ -144,7 +144,7 @@ function EnrollmentRow({ enrollment, canManage, courseId, onRefresh, onMessage, 
             size="sm"
             disabled={busy}
             onClick={() => void handleQuickApprove()}
-            className="h-8 text-xs font-semibold bg-[#1E5AA8] hover:bg-[#174A8C] text-white"
+            className="h-8 text-xs font-semibold bg-[#0077CC] hover:bg-[#0066B3] text-white"
           >
             Aprobar
           </Button>
@@ -163,7 +163,7 @@ function EnrollmentRow({ enrollment, canManage, courseId, onRefresh, onMessage, 
                 onMessage?.(`Inscripción de ${displayName} aceptada.`);
               })
             }
-            className="h-8 gap-1 text-xs text-[#1E5AA8]"
+            className="h-8 gap-1 text-xs text-[#0077CC]"
           >
             <RotateCcw size={13} />
             Aprobar
@@ -178,7 +178,7 @@ function EnrollmentRow({ enrollment, canManage, courseId, onRefresh, onMessage, 
                 onMessage?.(`Registro de ${displayName} eliminado.`);
               })
             }
-            className="h-8 text-xs text-[#8B95A5] hover:text-[#B3372F]"
+            className="h-8 text-xs text-[#64748B] hover:text-[#B3372F]"
             title="Eliminar registro"
           >
             <Trash2 size={13} />
@@ -223,7 +223,7 @@ function EnrollmentRow({ enrollment, canManage, courseId, onRefresh, onMessage, 
             variant='ghost'
             disabled={busy}
             onClick={() => ask(`¿Expulsar a "${displayName}" del curso?`, () => removeEnrollment(client, enrollment.enrollment_id))}
-            className="h-8 text-xs text-[#8B95A5] hover:text-[#B3372F]"
+            className="h-8 text-xs text-[#64748B] hover:text-[#B3372F]"
           >
             Expulsar
           </Button>
@@ -374,14 +374,14 @@ export function StudentsPage() {
 
       <div className='mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start'>
         <div>
-          <h1 className='text-[26px] font-bold tracking-[-0.03em] text-[#1A2332]'>{pageTitle}</h1>
-          <p className='mt-1 text-sm text-[#4A5568]'>{pageDescription}</p>
+          <h1 className='text-[26px] font-bold tracking-[-0.03em] text-[#0F172A]'>{pageTitle}</h1>
+          <p className='mt-1 text-sm text-[#334155]'>{pageDescription}</p>
         </div>
         {canManage && joinCode && <InviteModal joinCode={joinCode} />}
       </div>
 
       {message && (
-        <div className="mb-5 flex items-center gap-2 rounded-md border-l-[3px] border-[#1F7A4D] bg-[#E8F4EE] px-4 py-3 text-sm text-[#1A2332]">
+        <div className="mb-5 flex items-center gap-2 rounded-md border-l-[3px] border-[#1F7A4D] bg-[#E8F4EE] px-4 py-3 text-sm text-[#0F172A]">
           <CheckCircle size={16} className="shrink-0 text-[#1F7A4D]" />
           <span>{message}</span>
         </div>
@@ -396,14 +396,53 @@ export function StudentsPage() {
       )}
 
       {error && (
-        <p className='mb-5 rounded-md border-l-[3px] border-[#B3372F] bg-[#FBEDEB] px-4 py-3 text-sm text-[#1A2332]'>{error}</p>
+        <p className='mb-5 rounded-md border-l-[3px] border-[#B3372F] bg-[#FBEDEB] px-4 py-3 text-sm text-[#0F172A]'>{error}</p>
       )}
 
       {loading ? (
-        <div className='overflow-hidden rounded-lg border border-[#D9E0EA]'>
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className='h-[72px] w-full rounded-none border-b border-[#D9E0EA]' />
-          ))}
+        <div className='space-y-6'>
+          {/* Pending section skeleton */}
+          <section>
+            <div className='mb-2.5 flex items-center gap-2'>
+              <Skeleton className='h-5 w-40 rounded' />
+              <Skeleton className='h-5 w-8 rounded-full' />
+            </div>
+            <div className='overflow-hidden rounded-lg border border-[#E2E8F0]'>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className='flex min-h-[72px] items-center gap-4 border-b border-[#E2E8F0] bg-white px-5 py-4 last:border-b-0'>
+                  <Skeleton className='size-4 shrink-0 rounded' />
+                  <Skeleton className='size-10 shrink-0 rounded-md' />
+                  <div className='min-w-0 flex-1 space-y-2'>
+                    <Skeleton className='h-4 w-1/3 rounded' />
+                    <Skeleton className='h-3 w-1/2 rounded' />
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Skeleton className='h-8 w-20 rounded' />
+                    <Skeleton className='h-8 w-20 rounded' />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+          {/* Approved section skeleton */}
+          <section>
+            <div className='mb-2.5 flex items-center gap-2'>
+              <Skeleton className='h-5 w-32 rounded' />
+              <Skeleton className='h-5 w-8 rounded-full' />
+            </div>
+            <div className='overflow-hidden rounded-lg border border-[#E2E8F0]'>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className='flex min-h-[72px] items-center gap-4 border-b border-[#E2E8F0] bg-white px-5 py-4 last:border-b-0'>
+                  <Skeleton className='size-10 shrink-0 rounded-md' />
+                  <div className='min-w-0 flex-1 space-y-2'>
+                    <Skeleton className='h-4 w-1/4 rounded' />
+                    <Skeleton className='h-3 w-1/3 rounded' />
+                  </div>
+                  <Skeleton className='h-8 w-16 rounded' />
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       ) : canManage ? (
         enrollments.length === 0 ? (
@@ -416,21 +455,21 @@ export function StudentsPage() {
             {pending.length > 0 && (
               <section>
                 <div className="mb-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <h2 className='flex items-center gap-2 text-base font-semibold text-[#1A2332]'>
-                    <Users size={17} className="text-[#1E5AA8]" />
+                  <h2 className='flex items-center gap-2 text-base font-semibold text-[#0F172A]'>
+                    <Users size={17} className="text-[#0077CC]" />
                     Solicitudes pendientes
-                    <span className='rounded-full bg-[#EAF1F9] px-2 py-0.5 text-xs font-semibold text-[#1E5AA8]'>
+                    <span className='rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]'>
                       {pending.length}
                     </span>
                   </h2>
                   {canManage && (
                     <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-1.5 text-xs font-medium text-[#4A5568]">
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-[#334155]">
                         <input
                           type="checkbox"
                           checked={selectedPendingIds.size === pending.length && pending.length > 0}
                           onChange={toggleSelectAllPending}
-                          className="size-4 accent-[#1E5AA8]"
+                          className="size-4 accent-[#0077CC]"
                         />
                         Seleccionar todos
                       </label>
@@ -455,7 +494,7 @@ export function StudentsPage() {
                     </div>
                   )}
                 </div>
-                <div className='overflow-hidden rounded-lg border border-[#D9E0EA] bg-white'>
+                <div className='overflow-hidden rounded-lg border border-[#E2E8F0] bg-white'>
                   {pending.map((enrollment) => (
                     <EnrollmentRow
                       key={enrollment.enrollment_id}
@@ -472,17 +511,17 @@ export function StudentsPage() {
               </section>
             )}
             <section>
-              <h2 className='mb-2.5 text-base font-semibold text-[#1A2332] flex items-center gap-2'>
+              <h2 className='mb-2.5 text-base font-semibold text-[#0F172A] flex items-center gap-2'>
                 <UserCheck size={17} className="text-[#1F7A4D]" />
                 Inscritos{' '}
                 <span className='rounded-full bg-[#E8F4EE] px-2 py-0.5 text-xs font-semibold text-[#1F7A4D]'>{approved.length}</span>
               </h2>
               {approved.length === 0 ? (
-                <div className="rounded-lg border border-[#D9E0EA] bg-white p-6 text-center text-sm text-[#8B95A5]">
+                <div className="rounded-lg border border-[#E2E8F0] bg-white p-6 text-center text-sm text-[#64748B]">
                   Sin estudiantes activos por el momento.
                 </div>
               ) : (
-                <div className='overflow-hidden rounded-lg border border-[#D9E0EA] bg-white'>
+                <div className='overflow-hidden rounded-lg border border-[#E2E8F0] bg-white'>
                   {approved.map((enrollment) => (
                     <EnrollmentRow
                       key={enrollment.enrollment_id}
@@ -503,7 +542,7 @@ export function StudentsPage() {
                   Solicitudes no aceptadas{' '}
                   <span className='rounded-full bg-[#F0F3F8] px-2 py-0.5 text-xs font-semibold text-[#64748B]'>{rejected.length}</span>
                 </h2>
-                <div className='overflow-hidden rounded-lg border border-[#D9E0EA] bg-white'>
+                <div className='overflow-hidden rounded-lg border border-[#E2E8F0] bg-white'>
                   {rejected.map((enrollment) => (
                     <EnrollmentRow
                       key={enrollment.enrollment_id}
@@ -523,21 +562,21 @@ export function StudentsPage() {
         <div className='space-y-6'>
           {teacher && (
             <section>
-              <h2 className='mb-2.5 flex items-center gap-2 text-base font-semibold text-[#1A2332]'>
+              <h2 className='mb-2.5 flex items-center gap-2 text-base font-semibold text-[#0F172A]'>
                 <Crown size={17} className="text-[#D97706]" />
                 Docente
               </h2>
-              <div className='overflow-hidden rounded-lg border border-[#D9E0EA] bg-white'>
+              <div className='overflow-hidden rounded-lg border border-[#E2E8F0] bg-white'>
                 <div className='flex min-h-[72px] items-center gap-4 bg-white px-5 py-4'>
                   {teacher.avatar_url ? (
-                    <img src={teacher.avatar_url} alt={teacher.name} className='size-10 shrink-0 rounded-md object-cover border border-[#D9E0EA]' />
+                    <img src={teacher.avatar_url} alt={teacher.name} className='size-10 shrink-0 rounded-md object-cover border border-[#E2E8F0]' />
                   ) : (
                     <span className='flex size-10 shrink-0 items-center justify-center rounded-md bg-[#FEF3C7] text-sm font-semibold text-[#92400E]'>
                       {getInitials(teacher.name)}
                     </span>
                   )}
                   <div className='min-w-0 flex-1'>
-                    <div className='truncate text-[15px] font-semibold text-[#1A2332]'>{teacher.name}</div>
+                    <div className='truncate text-[15px] font-semibold text-[#0F172A]'>{teacher.name}</div>
                     {teacher.email && <div className='truncate text-xs text-[#64748B]'>{teacher.email}</div>}
                   </div>
                   <span className='rounded-md bg-[#FEF3C7] px-2.5 py-1 text-[12px] font-medium text-[#92400E]'>Profesor</span>
@@ -549,17 +588,17 @@ export function StudentsPage() {
             const peers = approved.filter((e) => e.user.id !== user?.id);
             return (
               <section>
-                <h2 className='mb-2.5 text-base font-semibold text-[#1A2332] flex items-center gap-2'>
-                  <Users size={17} className="text-[#1E5AA8]" />
+                <h2 className='mb-2.5 text-base font-semibold text-[#0F172A] flex items-center gap-2'>
+                  <Users size={17} className="text-[#0077CC]" />
                   Compañeros{' '}
-                  <span className='rounded-full bg-[#EAF1F9] px-2 py-0.5 text-xs font-semibold text-[#1E5AA8]'>{peers.length}</span>
+                  <span className='rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]'>{peers.length}</span>
                 </h2>
                 {peers.length === 0 ? (
-                  <div className="rounded-lg border border-[#D9E0EA] bg-white p-6 text-center text-sm text-[#8B95A5]">
+                  <div className="rounded-lg border border-[#E2E8F0] bg-white p-6 text-center text-sm text-[#64748B]">
                     Aún no hay otros estudiantes inscritos.
                   </div>
                 ) : (
-                  <div className='overflow-hidden rounded-lg border border-[#D9E0EA] bg-white'>
+                  <div className='overflow-hidden rounded-lg border border-[#E2E8F0] bg-white'>
                     {peers.map((enrollment) => (
                       <EnrollmentRow
                         key={enrollment.enrollment_id}

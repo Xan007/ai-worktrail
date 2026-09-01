@@ -33,7 +33,7 @@ export function App() {
   return (
     <BrowserRouter>
       <ToastContainer
-        position="bottom-right"
+        position="top-right"
         autoClose={4000}
         hideProgressBar={false}
         newestOnTop={false}
@@ -43,7 +43,7 @@ export function App() {
         pauseOnHover
         theme="light"
       />
-      <style>{`.Toastify__progress-bar{ background: #1E5AA8 !important; } .Toastify__progress-bar--bg{ background: #EAF1F9 !important; }`}</style>
+      <style>{`.Toastify__progress-bar{ background: #0077CC !important; } .Toastify__progress-bar--bg{ background: #E0F2FE !important; }`}</style>
       <Layout>
         <Routes>
           {/* Públicas */}

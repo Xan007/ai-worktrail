@@ -33,7 +33,7 @@ function ChatRow({ url, platform, gemStatus, extractionError, prompts, chatIndex
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-w-0 items-center gap-1.5 font-mono text-xs font-medium text-[#1E5AA8] hover:underline"
+          className="flex min-w-0 items-center gap-1.5 font-mono text-xs font-medium text-[#0077CC] hover:underline"
         >
           <span className="truncate">{url.length > 50 ? url.slice(0, 50) + '…' : url}</span>
           <ExternalLink size={12} className="shrink-0" />
@@ -46,7 +46,7 @@ function ChatRow({ url, platform, gemStatus, extractionError, prompts, chatIndex
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#1E5AA8] hover:text-[#174A8C]"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#0077CC] hover:text-[#0066B3]"
             >
               {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
               Ver prompts ({prompts.length})
@@ -56,7 +56,7 @@ function ChatRow({ url, platform, gemStatus, extractionError, prompts, chatIndex
       </div>
 
       {extractionError && (
-        <div className="mt-3 flex items-start gap-2 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-3 text-xs text-[#1A2332]">
+        <div className="mt-3 flex items-start gap-2 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-3 text-xs text-[#0F172A]">
           <AlertTriangle size={15} className="text-[#B3372F] shrink-0 mt-0.5" />
           <div>
             <span className="font-semibold block mb-0.5">Advertencia de extracción:</span>
@@ -66,13 +66,13 @@ function ChatRow({ url, platform, gemStatus, extractionError, prompts, chatIndex
       )}
 
       {open && prompts.length > 0 && (
-        <div className="mt-3 space-y-2 rounded-md border border-[#EEF1F6] bg-[#F6F8FB] p-3">
+        <div className="mt-3 space-y-2 rounded-md border border-[#EEF1F6] bg-[#F8FAFC] p-3">
           {prompts.map((prompt, promptPos) => (
             <div key={`prompt-${chatIndex}-${prompt.slice(0, 40)}-${promptPos}`} className="flex items-start gap-2.5">
-              <span className="shrink-0 rounded border border-[#D9E0EA] bg-white px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#8B95A5]">
+              <span className="shrink-0 rounded border border-[#E2E8F0] bg-white px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#64748B]">
                 [C{chatIndex + 1}-M{promptPos + 1}]
               </span>
-              <div className="flex-1 rounded border border-[#EEF1F6] bg-white p-2.5 text-xs text-[#1A2332] shadow-2xs">
+              <div className="flex-1 rounded border border-[#EEF1F6] bg-white p-2.5 text-xs text-[#0F172A] shadow-2xs">
                 <PromptText text={prompt} />
               </div>
             </div>
@@ -142,7 +142,7 @@ if (loading) {
       <main className="page-fade mx-auto max-w-[1040px] px-6 py-8" aria-busy="true">
         <span className="sr-only">Cargando entrega...</span>
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-[#D9E0EA] bg-white">
+          <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white">
             <div className="h-6 animate-pulse rounded-t-xl bg-[#F0F3F8]" />
             <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-3">
@@ -157,16 +157,16 @@ if (loading) {
             </div>
           </div>
           <div className="space-y-3">
-            <div className="h-[82px] rounded-lg border border-[#D9E0EA] bg-white animate-pulse" />
-            <div className="h-[82px] rounded-lg border border-[#D9E0EA] bg-white animate-pulse" />
-            <div className="h-[82px] rounded-lg border border-[#D9E0EA] bg-white animate-pulse" />
+            <div className="h-[82px] rounded-lg border border-[#E2E8F0] bg-white animate-pulse" />
+            <div className="h-[82px] rounded-lg border border-[#E2E8F0] bg-white animate-pulse" />
+            <div className="h-[82px] rounded-lg border border-[#E2E8F0] bg-white animate-pulse" />
           </div>
           <div className="space-y-3">
-            <div className="h-[72px] rounded-xl border border-[#D9E0EA] bg-white animate-pulse" />
-            <div className="h-[72px] rounded-xl border border-[#D9E0EA] bg-white animate-pulse" />
-            <div className="h-[72px] rounded-xl border border-[#D9E0EA] bg-white animate-pulse" />
-            <div className="h-[72px] rounded-xl border border-[#D9E0EA] bg-white animate-pulse" />
-            <div className="h-[72px] rounded-xl border border-[#D9E0EA] bg-white animate-pulse" />
+            <div className="h-[72px] rounded-xl border border-[#E2E8F0] bg-white animate-pulse" />
+            <div className="h-[72px] rounded-xl border border-[#E2E8F0] bg-white animate-pulse" />
+            <div className="h-[72px] rounded-xl border border-[#E2E8F0] bg-white animate-pulse" />
+            <div className="h-[72px] rounded-xl border border-[#E2E8F0] bg-white animate-pulse" />
+            <div className="h-[72px] rounded-xl border border-[#E2E8F0] bg-white animate-pulse" />
           </div>
         </div>
       </main>
@@ -177,7 +177,7 @@ if (!course || !task || !submission) {
     return (
       <main className="page-fade mx-auto max-w-[1040px] px-6 py-8">
         {error && (
-          <p className="mb-5 rounded-md border-l-[3px] border-[#B3372F] bg-[#FBEDEB] px-4 py-3 text-sm text-[#1A2332]">{error}</p>
+          <p className="mb-5 rounded-md border-l-[3px] border-[#B3372F] bg-[#FBEDEB] px-4 py-3 text-sm text-[#0F172A]">{error}</p>
         )}
         <EmptyState title="Entrega no encontrada" hint="Puede que no tengas acceso o que el enlace sea incorrecto." />
       </main>
@@ -187,7 +187,7 @@ if (!course || !task || !submission) {
 const backToTask = `/courses/${cid}/tasks/${tid}`;
 
   const { meta: statusMeta } = submissionStatus(analysis);
-  const scoreColor = analysis == null ? '#8B95A5' : analysis.score >= 70 ? '#1F7A4D' : analysis.score >= 40 ? '#B45309' : '#B3372F';
+  const scoreColor = analysis == null ? '#64748B' : analysis.score >= 70 ? '#1F7A4D' : analysis.score >= 40 ? '#B45309' : '#B3372F';
 
   return (
     <main className="page-fade mx-auto max-w-[1040px] px-6 py-8">
@@ -201,7 +201,7 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
       />
 
 {/* Cabecera de la entrega - Tarjeta de resumen */}
-      <section className="mb-6 overflow-hidden rounded-xl border border-[#D9E0EA] bg-white shadow-xs">
+      <section className="mb-6 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
         <div style={{ height: 6, background: statusMeta.strip }} />
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5 min-w-0 flex-1">
@@ -234,21 +234,21 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
               <div className="absolute flex flex-col items-center justify-center text-center">
                 <span
                   style={{
-                    color: analysis == null ? '#8B95A5' : analysis.score >= 80 ? '#1F7A4D' : analysis.score >= 60 ? '#B45309' : '#B3372F',
+                    color: analysis == null ? '#64748B' : analysis.score >= 80 ? '#1F7A4D' : analysis.score >= 60 ? '#B45309' : '#B3372F',
                   }}
                   className="font-mono text-2xl font-extrabold leading-none"
                 >
                   {analysis?.score ?? '—'}
                 </span>
                 {analysis != null && (
-                  <span className="text-[10px] font-semibold text-[#8B95A5]">/100</span>
+                  <span className="text-[10px] font-semibold text-[#64748B]">/100</span>
                 )}
               </div>
             </div>
 
             {/* Info del estudiante y metadata */}
             <div className="min-w-0 flex-1 space-y-2">
-              <h1 className="truncate text-xl font-bold tracking-tight text-[#1A2332]">
+              <h1 className="truncate text-xl font-bold tracking-tight text-[#0F172A]">
                 {submission.student.name}
               </h1>
 
@@ -256,7 +256,7 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
                 <span
                   style={{
                     background: analysis ? getProfileBg(analysis.profile) : '#F0F3F8',
-                    color: analysis ? getProfileColor(analysis.profile) : '#8B95A5',
+                    color: analysis ? getProfileColor(analysis.profile) : '#64748B',
                   }}
                   className="inline-block rounded px-2.5 py-1 text-xs font-semibold"
                 >
@@ -286,7 +286,7 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
                 type="button"
                 onClick={() => void handleEvaluate()}
                 disabled={evaluating}
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-[#1E5AA8] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#174A8C] disabled:opacity-75"
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-[#0077CC] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#0066B3] disabled:opacity-75"
               >
                 {evaluating && <Loader2 size={14} className="animate-spin" />}
                 {evaluating ? 'Evaluando…' : analysis ? 'Re-evaluar' : 'Evaluar entrega'}
@@ -295,7 +295,7 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
           )}
         </div>
         {error && (
-          <div className="mx-6 mb-5 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-3 text-xs text-[#1A2332]">
+          <div className="mx-6 mb-5 rounded-md border-l-4 border-[#B3372F] bg-[#FBEDEB] p-3 text-xs text-[#0F172A]">
             {error}
           </div>
         )}
@@ -303,7 +303,7 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
 
       {/* Trabajo del estudiante */}
       <section className="mb-8">
-        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A2332', marginBottom: 12 }}>Chats entregados</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>Chats entregados</h2>
         {submission.chats.length === 0 ? (
           <EmptyState title="Esta entrega no tiene chats registrados" />
         ) : (
@@ -325,7 +325,7 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
 
       {/* Evaluación */}
       <section>
-        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A2332', marginBottom: 12 }}>Evaluación</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>Evaluación</h2>
         {analysis ? (
           <>
 

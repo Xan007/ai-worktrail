@@ -15,7 +15,6 @@ export function LoginPage() {
     document.title = 'Iniciar sesión — AI WorkTrail';
   }, []);
 
-  // Usuario ya autenticado: si no tiene perfil (nuevo), va directo a onboarding
   if (isLoaded && isSignedIn) {
     if (profileLoading) {
       return (
@@ -31,27 +30,16 @@ export function LoginPage() {
   }
 
   return (
-    <main
-      className="page-fade"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-        background: '#FFFFFF',
-      }}
-    >
-      {/* Wordmark */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32 }}>
-        <span style={{ width: 10, height: 10, borderRadius: 2, background: '#1E5AA8', display: 'inline-block' }} />
-        <span style={{ fontSize: 20, fontWeight: 700, color: '#1A2332', letterSpacing: '-0.02em' }}>
+    <main className="page-fade flex min-h-screen flex-col items-center justify-center bg-white px-6">
+      <div className="mb-8 flex items-center gap-2.5">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-[#0077CC] shadow-sm">
+          <span className="size-2 rounded-xs bg-white" />
+        </div>
+        <span className="text-lg font-bold tracking-tight text-[#0F172A]">
           AI WorkTrail
         </span>
       </div>
 
-      {/* Clerk posee la tarjeta completa: sin caja anidada */}
       <SignIn
         signUpUrl={redirectUrl !== '/courses' ? `/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}` : '/sign-up'}
         fallbackRedirectUrl={redirectUrl}
@@ -59,7 +47,7 @@ export function LoginPage() {
         appearance={clerkAppearance}
       />
 
-      <p style={{ marginTop: 24, fontSize: 12, color: '#8B95A5', textAlign: 'center', maxWidth: 320 }}>
+      <p className="mt-8 max-w-[320px] text-center text-xs text-[#64748B]">
         Evalúa el uso de IA con evidencia, no con sospecha.
       </p>
     </main>
