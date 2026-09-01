@@ -148,14 +148,19 @@ function UserMenu() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const isLanding = typeof window !== 'undefined' && window.location.pathname === '/';
+
   return (
-    <div className="min-h-screen bg-[#FAFBFC]">
-      <header className="sticky top-0 z-40 border-b border-[#E2E8F0] bg-white/90 backdrop-blur-md transition-colors">
+    <div className="min-h-screen flex flex-col bg-[#FAFBFC]">
+      <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/85 backdrop-blur-md transition-all">
         <StudentPreviewBanner />
-        <div className="mx-auto flex h-14 w-full max-w-[1240px] items-center gap-4 px-6">
-          <Brand />
-          <NavList />
-          <div className="ml-auto flex items-center gap-2">
+        <div className="mx-auto flex h-14 w-full max-w-[1240px] items-center justify-between px-6">
+          <div className="flex items-center gap-6">
+            <Brand />
+            <NavList />
+          </div>
+
+          <div className="flex items-center gap-3">
             <SignedIn>
               <NotificationsBell />
               <UserMenu />
@@ -163,15 +168,24 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SignedOut>
               <Link
                 to="/login"
-                className="whitespace-nowrap rounded-md bg-[#0077CC] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#0066B3] shadow-2xs"
+                className="whitespace-nowrap rounded-lg border border-[#E2E8F0] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#0F172A] transition-colors hover:border-[#0077CC] hover:text-[#0077CC]"
               >
-                Iniciar sesión
+                Ingresar
+              </Link>
+              <Link
+                to="/onboarding"
+                className="whitespace-nowrap rounded-lg bg-[#0077CC] px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#0066B3]"
+              >
+                Comenzar gratis
               </Link>
             </SignedOut>
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-[1240px] px-6 py-8">{children}</main>
+
+      <main className={`flex-1 ${isLanding ? 'w-full' : 'mx-auto w-full max-w-[1240px] px-6 py-8'}`}>
+        {children}
+      </main>
     </div>
   );
 }
