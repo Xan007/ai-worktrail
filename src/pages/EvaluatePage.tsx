@@ -254,42 +254,92 @@ export function EvaluatePage() {
       {results && (
         <div className="space-y-8">
           {results.combined && (
-            <section className="space-y-3">
-              <div className="flex items-center justify-between border-b border-[#EEF1F6] pb-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-[#0077CC]" />
-                  <h2 className="text-sm font-bold text-[#0F172A]">Evaluación consolidada</h2>
+            <div className="space-y-6">
+              <section className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 shadow-2xs">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1 min-w-0">
+                    <h2 className="truncate text-lg font-bold tracking-tight text-[#0F172A]">
+                      Evaluación consolidada
+                    </h2>
+                    <p className="text-xs text-[#64748B]">
+                      {validChats.length} chat{validChats.length > 1 ? 's' : ''} evaluados conjuntamente
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="text-right">
+                      <span
+                        style={{
+                          color:
+                            results.combined.score >= 80
+                              ? '#1F7A4D'
+                              : results.combined.score >= 60
+                              ? '#B45309'
+                              : '#B3372F',
+                        }}
+                        className="font-mono text-2xl font-bold leading-none block"
+                      >
+                        {results.combined.score}
+                        <span className="text-xs font-normal text-[#94A3B8]">/100</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span className="rounded bg-[#E0F2FE] px-2 py-0.5 font-mono text-[11px] font-semibold text-[#0077CC]">
-                  {validChats.length} chats
-                </span>
-              </div>
-              <ScoreBlock analysis={results.combined} storageKey="evaluate-combined" />
-            </section>
+              </section>
+
+              <section>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>
+                  Evaluación
+                </h3>
+                <ScoreBlock analysis={results.combined} storageKey="evaluate-combined" />
+              </section>
+            </div>
           )}
 
-          {results.individual.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-sm font-bold text-[#0F172A] border-b border-[#EEF1F6] pb-2">
-                Evaluaciones individuales
-              </h2>
+          {results.individual.length > 1 && (
+            <section className="space-y-6 pt-4 border-t border-[#EEF1F6]">
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>
+                Evaluaciones individuales por enlace
+              </h3>
               <div className="space-y-6">
                 {results.individual.map((a, i) => (
-                  <div key={a.id} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-semibold text-[#64748B]">
-                        Chat {i + 1}
-                      </span>
-                      <a
-                        href={a.submission_id}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-mono text-xs text-[#0077CC] hover:underline"
-                      >
-                        <span className="truncate max-w-[280px]">{a.submission_id}</span>
-                        <ExternalLink size={12} />
-                      </a>
-                    </div>
+                  <div key={a.id} className="space-y-4">
+                    <section className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-4 shadow-2xs">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                          <h4 className="truncate text-sm font-bold text-[#0F172A]">
+                            Chat {i + 1}
+                          </h4>
+                          <a
+                            href={a.submission_id}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-mono text-xs text-[#0077CC] hover:underline"
+                          >
+                            <span className="truncate max-w-[320px] sm:max-w-[480px]">{a.submission_id}</span>
+                            <ExternalLink size={11} />
+                          </a>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span
+                            style={{
+                              color:
+                                a.score >= 80
+                                  ? '#1F7A4D'
+                                  : a.score >= 60
+                                  ? '#B45309'
+                                  : '#B3372F',
+                            }}
+                            className="font-mono text-xl font-bold leading-none block"
+                          >
+                            {a.score}
+                            <span className="text-xs font-normal text-[#94A3B8]">/100</span>
+                          </span>
+                        </div>
+                      </div>
+                    </section>
+
                     <ScoreBlock analysis={a} storageKey={`evaluate-individual-${i}`} />
                   </div>
                 ))}
@@ -302,7 +352,7 @@ export function EvaluatePage() {
       {!results && !loading && (
         <div className="rounded-xl border border-dashed border-[#E2E8F0] p-10 text-center bg-white/50">
           <p className="text-xs font-semibold text-[#334155]">Ingresa enlaces arriba y presiona "Evaluar enlaces"</p>
-          <p className="mt-1 text-[11px] text-[#64748B]">Los resultados detallados se presentarán aquí con el desglose de criterios.</p>
+          <p className="mt-1 text-[11px] text-[#64748B]">Los resultados detallados se presentarán aquí con el mismo visor de la entrega.</p>
         </div>
       )}
     </main>
