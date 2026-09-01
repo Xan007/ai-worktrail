@@ -227,27 +227,41 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
 
       <section className="mb-6 rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 shadow-2xs">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1 min-w-0">
-            <h1 className="truncate text-lg font-bold tracking-tight text-[#0F172A]">
-              {submission.student.name}
-            </h1>
+          <div className="flex items-center gap-3.5 min-w-0">
+            {submission.student.avatar_url ? (
+              <img
+                src={submission.student.avatar_url}
+                alt={submission.student.name}
+                className="size-11 rounded-full object-cover border border-[#CBD5E1] shadow-2xs shrink-0"
+              />
+            ) : (
+              <div className="flex size-11 items-center justify-center rounded-full bg-[#E0F2FE] text-[#0077CC] font-bold text-sm shrink-0">
+                {submission.student.name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
 
-            <p className="text-xs text-[#64748B]">
-              Entregado el {formatDate(submission.submitted_at)}
-              {task.due_at && (
-                <span
-                  className={
-                    new Date(submission.submitted_at) > new Date(task.due_at)
-                      ? ' text-[#B3372F] font-medium'
-                      : ' text-[#1F7A4D] font-medium'
-                  }
-                >
-                  {new Date(submission.submitted_at) > new Date(task.due_at)
-                    ? ' (con retraso)'
-                    : ' (a tiempo)'}
-                </span>
-              )}
-            </p>
+            <div className="space-y-0.5 min-w-0">
+              <h1 className="truncate text-lg font-bold tracking-tight text-[#0F172A]">
+                {submission.student.name}
+              </h1>
+
+              <p className="text-xs text-[#64748B]">
+                Entregado el {formatDate(submission.submitted_at)}
+                {task.due_at && (
+                  <span
+                    className={
+                      new Date(submission.submitted_at) > new Date(task.due_at)
+                        ? ' text-[#B3372F] font-medium'
+                        : ' text-[#1F7A4D] font-medium'
+                    }
+                  >
+                    {new Date(submission.submitted_at) > new Date(task.due_at)
+                      ? ' (con retraso)'
+                      : ' (a tiempo)'}
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-4 shrink-0">

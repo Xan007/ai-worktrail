@@ -48,7 +48,7 @@ export async function getSubmissionDetail(client: Client, submissionId: string):
           `)
           .eq('id', taskId)
           .maybeSingle(),
-        client.from('users').select('id, name').eq('id', studentId).maybeSingle(),
+        client.from('users').select('id, name, email, avatar_url').eq('id', studentId).maybeSingle(),
         client
           .from('submission_chats')
           .select('id, submission_id, chat_url, platform, is_gem, approved_gem_id, extraction_error, extracted_text')
@@ -72,7 +72,10 @@ export async function getSubmissionDetail(client: Client, submissionId: string):
 
       const t = taskRes.data as Record<string, unknown>;
       const courseRow = (t as { course: Record<string, unknown> }).course;
-      const userName = (userRes.data as { name: string } | null)?.name ?? 'Estudiante';
+      const userObj = userRes.data as { name?: string; email?: string; avatar_url?: string | null } | null;
+      const userName = userObj?.name || (userObj?.email ? userObj.email.split('@')[0] : 'Estudiante');
+      const userEmail = userObj?.email;
+      const userAvatar = userObj?.avatar_url ?? null;
       const chatRows = chatRes.data;
       const analysisRows = analysisRes.data;
 
@@ -86,7 +89,7 @@ export async function getSubmissionDetail(client: Client, submissionId: string):
           task_id: taskId,
           version: Number(sub.version ?? 1),
           submitted_at: String(sub.submitted_at),
-          student: { id: studentId, name: userName },
+          student: { id: studentId, name: userName, email: userEmail, avatar_url: userAvatar },
           chats,
         },
         analysis,

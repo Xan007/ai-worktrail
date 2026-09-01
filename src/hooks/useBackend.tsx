@@ -109,15 +109,29 @@ function ProfileProviderInner({ children }: { children: ReactNode }) {
         const dbProfile = await fetchProfileDirectly(client, user!.id);
         if (cancelled) return;
 
+        const clerkAvatar = user.imageUrl || null;
+        const clerkName = user.fullName?.trim() || [user.firstName, user.lastName].filter(Boolean).join(' ').trim() || null;
+
         if (dbProfile) {
           setProfile(dbProfile);
-          // Persist to localStorage for future fast loads
           try {
             localStorage.setItem(`awt_profile_${user.id}`, JSON.stringify(dbProfile));
             localStorage.setItem(`awt_user_role_${user.id}`, dbProfile.role);
           } catch {}
+
+          // Auto-sync avatar or name from Clerk to Supabase if updated
+          if (clerkAvatar && (dbProfile.avatar_url !== clerkAvatar || (clerkName && dbProfile.name !== clerkName))) {
+            (async () => {
+              try {
+                await client
+                  .from('users')
+                  .update({ avatar_url: clerkAvatar, ...(clerkName ? { name: clerkName } : {}) } as never)
+                  .eq('id', user.id);
+                setProfile((prev) => prev ? { ...prev, avatar_url: clerkAvatar, ...(clerkName ? { name: clerkName } : {}) } : prev);
+              } catch {}
+            })();
+          }
         } else {
-          // Fallback: try localStorage profile as safety net
           const cached = localStorageProfile();
           if (cached) setProfile(cached);
           else setProfile(null);
@@ -125,7 +139,6 @@ function ProfileProviderInner({ children }: { children: ReactNode }) {
       } catch (err: unknown) {
         if (cancelled) return;
         console.error('Unexpected error loading profile from DB:', err);
-        // Fallback: try localStorage profile as safety net
         const cached = localStorageProfile();
         if (cached) setProfile(cached);
         else setProfile(null);

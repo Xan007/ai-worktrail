@@ -19,16 +19,13 @@ const NAV = [
 
 function Brand() {
   return (
-    <Link to="/" className="flex shrink-0 items-center gap-3 group">
-      <div className="flex size-9 items-center justify-center rounded-xl bg-[#0077CC] text-white shadow-sm transition-all group-hover:bg-[#0066B3] group-hover:shadow-md">
-        <span className="size-2.5 rounded-sm bg-white" />
+    <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
+      <div className="flex size-8 items-center justify-center rounded-lg bg-[#0077CC] text-white shadow-sm transition-all group-hover:bg-[#0066B3] group-hover:shadow-md">
+        <span className="size-2 rounded-xs bg-white" />
       </div>
-      <div className="flex flex-col">
-        <span className="font-bold text-base tracking-tight text-[#0F172A] group-hover:text-[#0077CC] transition-colors leading-tight">
-          AI WorkTrail
-        </span>
-        <span className="text-[10px] font-medium text-[#64748B] tracking-normal">Educación superior</span>
-      </div>
+      <span className="font-bold text-base tracking-tight text-[#0F172A] group-hover:text-[#0077CC] transition-colors leading-tight">
+        AI WorkTrail
+      </span>
     </Link>
   );
 }

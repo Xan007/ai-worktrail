@@ -14,7 +14,7 @@ export interface SubmissionView {
   task_id: string;
   version: number;
   submitted_at: string;
-  student: { id: string; name: string };
+  student: { id: string; name: string; email?: string; avatar_url?: string | null };
   chats: ChatView[];
 }
 
@@ -31,7 +31,7 @@ export interface SubmissionDetail {
     task_id: string;
     version: number;
     submitted_at: string;
-    student: { id: string; name: string };
+    student: { id: string; name: string; email?: string; avatar_url?: string | null };
     chats: ChatView[];
   };
   analysis: Analysis | null;
