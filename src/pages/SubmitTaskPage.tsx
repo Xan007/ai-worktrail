@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CalendarClock, Check, Link2, Plus, ShieldAlert, Trash2, Users } from 'lucide-react';
+import { CalendarClock, Check, Link2, Plus, Trash2, Users } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { AppBreadcrumb } from '@/components/AppBreadcrumb';
 import { EmptyState } from '@/components/EmptyState';
-import { GeminiGuideCard } from '@/components/GeminiGuideCard';
+import { MultiPlatformGuideCard } from '@/components/MultiPlatformGuideCard';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useBackendClient } from '@/hooks/useBackend';
-import { evaluateSubmission, getCourse, getMySubmissionsByTasks, getSubmissionDetail, listTasks, submitChats } from '@/lib/data';
+import { evaluateSubmission, getCourse, getMySubmissionsByTasks, getSubmissionDetail, listTasks, submitChats, detectPlatform } from '@/lib/data';
 
 const dueDateFormatterLong = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
@@ -18,6 +18,15 @@ interface ChatUrl {
   id: string;
   value: string;
 }
+
+type Platform = 'gemini' | 'chatgpt' | 'claude' | 'other';
+
+const PLATFORM_CONFIG: Record<Platform, { label: string; color: string; bgColor: string; icon: string }> = {
+  gemini: { label: 'Gemini', color: '#6B4FB3', bgColor: '#F1EDFA', icon: '/logos/gemini.svg' },
+  chatgpt: { label: 'ChatGPT', color: '#0E7A5F', bgColor: '#E6F5F0', icon: '/logos/chatgpt.svg' },
+  claude: { label: 'Claude', color: '#B4552D', bgColor: '#FBEEE9', icon: '/logos/claude.svg' },
+  other: { label: 'Otro', color: '#64748B', bgColor: '#EEF1F6', icon: '' },
+};
 
 interface ChatUrlListFormProps {
   validChats: string[];
@@ -45,46 +54,64 @@ function ChatUrlListForm({
   onCancel,
 }: ChatUrlListFormProps) {
   return (
-    <form onSubmit={onSubmit} className="rounded-xl border border-[#D9E0EA] bg-white p-6 shadow-xs space-y-6">
+    <form onSubmit={onSubmit} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-xs space-y-6">
       <div>
         <div className="flex items-center justify-between mb-2">
-          <Label className="text-sm font-semibold text-[#1A2332]">Enlaces de tus chats de Gemini</Label>
-          <span className="text-xs text-[#8B95A5]">{validChats.length} enlace(s) válido(s)</span>
+          <Label className="text-sm font-semibold text-[#0F172A]">Enlaces de tus chats</Label>
+          <span className="text-xs text-[#64748B]">{validChats.length} enlace(s) válido(s)</span>
         </div>
 
         <div className="space-y-3">
-          {chats.map((chat, index) => (
-            <div key={chat.id} className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Link2 size={15} className="pointer-events-none absolute top-3.5 left-3 text-[#8B95A5]" />
-                <Input
-                  value={chat.value}
-                  onChange={(event) => onUpdateChat(chat.id, event.target.value)}
-                  placeholder="https://gemini.google.com/share/..."
-                  className="h-10 pl-9 font-mono text-xs"
-                />
+          {chats.map((chat, index) => {
+            const platform = detectPlatform(chat.value);
+            const config = PLATFORM_CONFIG[platform];
+            return (
+              <div key={chat.id} className="flex items-start gap-2">
+                <div className="relative flex-1">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[#E2E8F0] bg-[#FAFBFC]"
+                      title={config.label}
+                    >
+                      {config.icon ? (
+                        <img src={config.icon} alt={config.label} className="size-5" />
+                      ) : (
+                        <Link2 size={15} className="text-[#64748B]" />
+                      )}
+                    </div>
+                    <div className="relative flex-1">
+                      <Link2 size={15} className="pointer-events-none absolute top-3.5 left-3 text-[#64748B]" />
+                      <Input
+                        value={chat.value}
+                        onChange={(event) => onUpdateChat(chat.id, event.target.value)}
+                        placeholder="https://gemini.google.com/share/... o cualquier enlace de chat"
+                        className="h-10 pl-9 font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+                {chats.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Quitar enlace ${index + 1}`}
+                    onClick={() => onRemoveChat(chat.id)}
+                    className="mt-0 text-[#64748B] hover:text-[#B3372F] hover:bg-[#FBEDEB]"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                )}
               </div>
-              {chats.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Quitar enlace ${index + 1}`}
-                  onClick={() => onRemoveChat(chat.id)}
-                  className="text-[#8B95A5] hover:text-[#B3372F] hover:bg-[#FBEDEB]"
-                >
-                  <Trash2 size={16} />
-                </Button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="mt-3 gap-1.5 text-xs text-[#1E5AA8] hover:text-[#174A8C]"
+          className="mt-3 gap-1.5 text-xs text-[#0077CC] hover:text-[#0066B3]"
           onClick={onAddChat}
         >
           <Plus size={14} /> Añadir otro chat
@@ -121,10 +148,10 @@ function ConfirmSubmitDialog({ open, reasons, busy, onOpenChange, onConfirm }: C
           </DialogTitle>
           <DialogDescription>Revisa estos puntos para que tu docente pueda leer las conversaciones.</DialogDescription>
         </DialogHeader>
-        <ul className="space-y-2 py-2 text-sm text-[#1A2332]">
+        <ul className="space-y-2 py-2 text-sm text-[#0F172A]">
           {reasons.map((reason, pos) => (
             <li key={`reason-${reason.slice(0, 40)}`} className="flex gap-2">
-              <span className="font-mono font-semibold text-[#1E5AA8]">{pos + 1}.</span>
+              <span className="font-mono font-semibold text-[#0077CC]">{pos + 1}.</span>
               <span className="break-words">{reason}</span>
             </li>
           ))}
@@ -192,7 +219,10 @@ export function SubmitTaskPage() {
               .then((detail) => {
                 if (!cancelled && detail && detail.submission.chats.length > 0) {
                   setChats(
-                    detail.submission.chats.map((chat, i) => ({ id: `c${i}`, value: chat.url }))
+                    detail.submission.chats.map((chat, i) => ({
+                      id: `c${i}`,
+                      value: chat.url,
+                    }))
                   );
                 }
               })
@@ -226,8 +256,7 @@ export function SubmitTaskPage() {
   }, [chats]);
 
   const addChat = () => setChats((prev) => [...prev, { id: `c${Date.now()}`, value: '' }]);
-  const updateChat = (id: string, value: string) =>
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, value } : c)));
+  const updateChat = (id: string, value: string) => setChats((prev) => prev.map((c) => (c.id === id ? { ...c, value } : c)));
   const removeChat = (id: string) => setChats((prev) => (prev.length > 1 ? prev.filter((c) => c.id !== id) : prev));
 
   const isGroupTask = task?.is_group_task ?? false;
@@ -239,7 +268,10 @@ export function SubmitTaskPage() {
     setBusy(true);
     setError(null);
     try {
-      const { id: submissionId } = await submitChats(client, tid, user.id, validChats);
+      const urls = chats
+        .filter((c) => /^https?:\/\//i.test(c.value.trim()))
+        .map((c) => c.value.trim());
+      const { id: submissionId } = await submitChats(client, tid, user.id, urls);
       if (task?.ai_evaluation_mode === 'on_submit' && validChats.length > 0) {
         setWillEvaluate(true);
         void evaluateSubmission(client, submissionId);
@@ -257,7 +289,7 @@ export function SubmitTaskPage() {
 
     const reasons: string[] = [];
     for (const url of validChats) {
-      if (/workspace\.google\.com|accounts\.google\.com/i.test(url)) {
+      if (/gemini\.google\.com|share\.gemini\.google/i.test(url) && /workspace\.google\.com|accounts\.google\.com/i.test(url)) {
         reasons.push(`El enlace "${url.slice(0, 45)}…" parece requerir inicio de sesión institucional.`);
       }
     }
@@ -291,12 +323,12 @@ export function SubmitTaskPage() {
       />
 
       {submitted ? (
-        <div className="mt-8 rounded-xl border border-[#D9E0EA] bg-white p-8 text-center shadow-xs">
+        <div className="mt-8 rounded-xl border border-[#E2E8F0] bg-white p-8 text-center shadow-xs">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-[#E8F4EE] text-[#1F7A4D]">
             <Check size={28} />
           </div>
-          <h1 className="text-xl font-bold text-[#1A2332]">¡Entrega realizada con éxito!</h1>
-          <p className="mt-2 text-sm text-[#4A5568]">
+          <h1 className="text-xl font-bold text-[#0F172A]">¡Entrega realizada con éxito!</h1>
+          <p className="mt-2 text-sm text-[#334155]">
             {willEvaluate
               ? 'Tus enlaces han sido enviados y la IA está analizando la evidencia.'
               : 'Tus enlaces han sido enviados correctamente.'}
@@ -308,9 +340,9 @@ export function SubmitTaskPage() {
       ) : (
         <div className="mt-6 space-y-6">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold text-[#1A2332]">{task?.name ?? 'Entregar tarea'}</h1>
-            <div className="flex items-center gap-3 text-xs text-[#8B95A5]">
-              {isGroupTask && <div className="flex items-center gap-1 text-[#1E5AA8]"><Users size={14} /> Tarea grupal</div>}
+            <h1 className="text-2xl font-bold text-[#0F172A]">{task?.name ?? 'Entregar tarea'}</h1>
+            <div className="flex items-center gap-3 text-xs text-[#64748B]">
+              {isGroupTask && <div className="flex items-center gap-1 text-[#0077CC]"><Users size={14} /> Tarea grupal</div>}
               <div className="flex items-center gap-1"><CalendarClock size={14} /> Vence {task?.due_at ? new Date(task.due_at).toLocaleDateString() : 'Sin fecha'}</div>
             </div>
           </div>
@@ -323,7 +355,7 @@ export function SubmitTaskPage() {
             <EmptyState title="Ya entregaste esta tarea" hint="El docente no permite corregir la entrega. Si necesitas cambios, contacta a tu profesor." />
           ) : (
             <>
-              <GeminiGuideCard />
+              <MultiPlatformGuideCard />
               <ChatUrlListForm
                 validChats={validChats}
                 chats={chats}

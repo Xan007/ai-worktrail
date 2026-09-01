@@ -220,11 +220,24 @@ export async function getTaskBundle(client: Client, taskId: string): Promise<Tas
   return promise;
 }
 
+export interface ChatPayload {
+  url: string;
+  platform: 'gemini' | 'chatgpt' | 'claude' | 'other';
+}
+
+export function detectPlatform(url: string): 'gemini' | 'chatgpt' | 'claude' | 'other' {
+  const lower = url.toLowerCase();
+  if (lower.includes('gemini.google.com') || lower.includes('share.gemini.google')) return 'gemini';
+  if (lower.includes('chatgpt.com') || lower.includes('chat.openai.com')) return 'chatgpt';
+  if (lower.includes('claude.ai')) return 'claude';
+  return 'other';
+}
+
 export async function submitChats(
   client: Client,
   taskId: string,
   uId: string,
-  urls: string[],
+  urls: string[] | ChatPayload[],
 ): Promise<{ id: string }> {
   const { data: sub, error: subErr } = await client
     .from('submissions')
@@ -234,12 +247,12 @@ export async function submitChats(
   if (subErr) throw new Error(subErr.message);
 
   if (urls.length > 0) {
-    const rows = urls.map((url) => ({
-      submission_id: sub.id,
-      student_id: uId,
-      chat_url: url,
-      platform: 'gemini',
-    }));
+    const rows = urls.map((item) => {
+      if (typeof item === 'string') {
+        return { submission_id: sub.id, student_id: uId, chat_url: item, platform: detectPlatform(item) };
+      }
+      return { submission_id: sub.id, student_id: uId, chat_url: item.url, platform: item.platform };
+    });
     const { error: chatErr } = await client.from('submission_chats').insert(rows);
     if (chatErr) throw new Error(`La entrega se creó pero falló al guardar los chats: ${chatErr.message}`);
   }
