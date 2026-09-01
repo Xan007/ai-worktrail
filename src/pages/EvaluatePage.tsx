@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Analysis } from '@/lib/mockdata';
 import { useBackendClient } from '@/hooks/useBackend';
-import { CRITERIA_META, detectPlatform } from '@/lib/data';
+import { CRITERIA_META, detectPlatform, getEvaluationBenchmark, recordEvaluationBenchmark } from '@/lib/data';
 
 interface LinkResultPayload {
   url: string;
@@ -129,20 +129,16 @@ export function EvaluatePage() {
     setProgressPercent(8);
 
     const chatCount = Math.max(1, validChats.length);
-    let historicalAvgPerChat = 3500;
-    try {
-      const stored = localStorage.getItem('awt_eval_benchmark_per_chat');
-      if (stored) historicalAvgPerChat = Math.max(2000, Number(stored));
-    } catch {}
-    const expectedDurationMs = 3500 + chatCount * historicalAvgPerChat;
+    const benchmark = getEvaluationBenchmark();
+    const expectedDurationMs = benchmark.baseLatencyMs + chatCount * benchmark.perChatMs;
     const startTime = Date.now();
 
     const progressInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const progressFraction = Math.min(1, elapsed / expectedDurationMs);
-      const targetPercent = Math.min(92, Math.round(15 + 77 * Math.pow(progressFraction, 0.85)));
+      const targetPercent = Math.min(92, Math.round(12 + 80 * Math.pow(progressFraction, 0.82)));
       setProgressPercent((prev) => Math.max(prev, targetPercent));
-    }, 200);
+    }, 150);
 
     try {
       const { data, error: invokeError } = await client.functions.invoke<LinksResponse>(
@@ -151,13 +147,7 @@ export function EvaluatePage() {
       );
 
       const totalDuration = Date.now() - startTime;
-      try {
-        const measuredPerChat = Math.round((totalDuration - 2500) / chatCount);
-        if (measuredPerChat > 1500) {
-          const newAvg = Math.round((historicalAvgPerChat * 0.6) + (measuredPerChat * 0.4));
-          localStorage.setItem('awt_eval_benchmark_per_chat', String(newAvg));
-        }
-      } catch {}
+      recordEvaluationBenchmark(chatCount, totalDuration);
 
       if (invokeError) {
         clearInterval(progressInterval);

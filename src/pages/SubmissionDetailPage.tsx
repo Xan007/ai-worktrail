@@ -8,7 +8,7 @@ import { ScoreBlock } from '@/components/ScoreBlock';
 import { useBackendClient, useProfileState } from '@/hooks/useBackend';
 import type { Analysis } from '@/lib/mockdata';
 import { getProfileLabel, getProfileColor, getProfileBg, formatDate } from '@/lib/mockdata';
-import { evaluateSubmission, getSubmissionDetail, type SubmissionDetail } from '@/lib/data';
+import { evaluateSubmission, getEvaluationBenchmark, getSubmissionDetail, recordEvaluationBenchmark, type SubmissionDetail } from '@/lib/data';
 import { PromptText } from '@/components/PromptText';
 import { PlatformChip } from '@/components/meta';
 import { submissionStatus } from '@/lib/submission-status';
@@ -159,40 +159,31 @@ export function SubmissionDetailPage() {
     setError(null);
     setProgressPercent(8);
 
-    // Calculate benchmarked duration based on number of chats (~3.5s per chat + 4s base latency)
+    // Calculate benchmarked duration using calibrated persistent benchmark
     const chatCount = Math.max(1, submission?.chats.length || 1);
-    let historicalAvgPerChat = 3500;
-    try {
-      const stored = localStorage.getItem('awt_eval_benchmark_per_chat');
-      if (stored) historicalAvgPerChat = Math.max(2000, Number(stored));
-    } catch {}
-    const expectedDurationMs = 4000 + chatCount * historicalAvgPerChat;
+    const benchmark = getEvaluationBenchmark();
+    const expectedDurationMs = benchmark.baseLatencyMs + chatCount * benchmark.perChatMs;
     const startTime = Date.now();
 
     // Smooth interval advancing towards 92% based on expected duration
     const progressInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const progressFraction = Math.min(1, elapsed / expectedDurationMs);
-      // Asymptotic curve: quickly reaches 70%, then approaches 92%
-      const targetPercent = Math.min(92, Math.round(15 + 77 * Math.pow(progressFraction, 0.85)));
+      // Asymptotic curve: quickly reaches 70%, then smoothly approaches 92%
+      const targetPercent = Math.min(92, Math.round(12 + 80 * Math.pow(progressFraction, 0.82)));
       setProgressPercent((prev) => Math.max(prev, targetPercent));
-    }, 200);
+    }, 150);
 
     try {
       await evaluateSubmission(client, sid, tid);
       const totalDuration = Date.now() - startTime;
-      // Record new benchmark
-      try {
-        const measuredPerChat = Math.round((totalDuration - 3000) / chatCount);
-        if (measuredPerChat > 1500) {
-          const newAvg = Math.round((historicalAvgPerChat * 0.6) + (measuredPerChat * 0.4));
-          localStorage.setItem('awt_eval_benchmark_per_chat', String(newAvg));
-        }
-      } catch {}
+      
+      // Persistently record measured timing to continuously calibrate future estimates
+      recordEvaluationBenchmark(chatCount, totalDuration);
 
       clearInterval(progressInterval);
 
-      // Satisfying completion animation: animate up to 100%
+      // Satisfying completion animation: animate cleanly up to 100%
       setProgressPercent(100);
       await new Promise((res) => setTimeout(res, 500));
       await load();

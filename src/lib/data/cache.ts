@@ -57,3 +57,62 @@ export function writeStoredDetail(submissionId: string, value: SubmissionDetail 
 export function invalidateSubmissionDetailCache(submissionId: string): void {
   localStorage.removeItem(DETAIL_PREFIX + submissionId);
 }
+
+// === Evaluation Timing Benchmarks Persistence ===
+const BENCHMARK_KEY = 'awt:benchmark:eval_timings_v1';
+
+export interface EvaluationBenchmark {
+  baseLatencyMs: number;
+  perChatMs: number;
+  sampleCount: number;
+  lastUpdated: number;
+}
+
+const DEFAULT_BENCHMARK: EvaluationBenchmark = {
+  baseLatencyMs: 3800,
+  perChatMs: 3200,
+  sampleCount: 1,
+  lastUpdated: 0,
+};
+
+export function getEvaluationBenchmark(): EvaluationBenchmark {
+  try {
+    const raw = localStorage.getItem(BENCHMARK_KEY);
+    if (!raw) return DEFAULT_BENCHMARK;
+    const parsed = JSON.parse(raw) as EvaluationBenchmark;
+    if (parsed && typeof parsed.baseLatencyMs === 'number' && typeof parsed.perChatMs === 'number') {
+      return {
+        baseLatencyMs: Math.max(1500, Math.min(10000, parsed.baseLatencyMs)),
+        perChatMs: Math.max(1500, Math.min(12000, parsed.perChatMs)),
+        sampleCount: parsed.sampleCount || 1,
+        lastUpdated: parsed.lastUpdated || 0,
+      };
+    }
+  } catch {}
+  return DEFAULT_BENCHMARK;
+}
+
+export function recordEvaluationBenchmark(chatCount: number, totalDurationMs: number): void {
+  try {
+    const safeChatCount = Math.max(1, chatCount);
+    const current = getEvaluationBenchmark();
+
+    // Estimate per-chat and base latency using exponential moving average (alpha = 0.35)
+    // base latency is approx 35% of total, rest is per-chat work
+    const measuredBase = Math.max(1500, Math.min(6000, totalDurationMs * 0.35));
+    const measuredPerChat = Math.max(1500, Math.min(10000, (totalDurationMs - measuredBase) / safeChatCount));
+
+    const alpha = 0.35;
+    const newBase = Math.round(current.baseLatencyMs * (1 - alpha) + measuredBase * alpha);
+    const newPerChat = Math.round(current.perChatMs * (1 - alpha) + measuredPerChat * alpha);
+
+    const updated: EvaluationBenchmark = {
+      baseLatencyMs: newBase,
+      perChatMs: newPerChat,
+      sampleCount: current.sampleCount + 1,
+      lastUpdated: Date.now(),
+    };
+
+    localStorage.setItem(BENCHMARK_KEY, JSON.stringify(updated));
+  } catch {}
+}
