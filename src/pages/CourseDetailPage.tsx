@@ -447,10 +447,18 @@ export function CourseDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [checklistDismissed, setChecklistDismissed] = useState(false);
   const [checklistHasInvited, setChecklistHasInvited] = useState(false);
+  const [checklistHasCreatedTask, setChecklistHasCreatedTask] = useState(() => {
+    try {
+      return localStorage.getItem(`awt_task_created_${id}`) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const { isStudentPreview, setStudentPreview, isActualTeacher, isTeacher } = useCourseRole(course?.teacher_id);
 
   // Invite done = opened invite modal (DB flag) OR actual students exist
   const inviteDone = checklistHasInvited || studentsCount > 0;
+  const taskDone = checklistHasCreatedTask || tasks.length > 0;
 
   const shouldHighlightInvite = useMemo(() => {
     if (!course || !isTeacher) return false;
@@ -463,9 +471,9 @@ export function CourseDetailPage() {
     if (!course || !isTeacher) return false;
     if (checklistDismissed) return false;
     if (!inviteDone) return false;
-    if (tasks.length > 0) return false;
+    if (taskDone) return false;
     return tasks.length === 0;
-  }, [course?.id, isTeacher, tasks.length, inviteDone, tasks.length > 0, checklistDismissed]);
+  }, [course?.id, isTeacher, tasks.length, inviteDone, taskDone, checklistDismissed]);
 
   const handleInviteOpenChange = (open: boolean) => {
     setInviteModalOpen(open);
@@ -602,6 +610,10 @@ export function CourseDetailPage() {
         due_date: data.due_at,
         allow_resubmission: data.allow_resubmission ?? true,
       });
+      try {
+        localStorage.setItem(`awt_task_created_${id}`, 'true');
+      } catch {}
+      setChecklistHasCreatedTask(true);
       await refreshTasks();
       showTaskCreated({ taskName: data.name, taskId: created.id, courseId: course.id, navigate });
     } catch (err) {
@@ -878,7 +890,7 @@ export function CourseDetailPage() {
 
       {isTeacher && (() => {
         const hasStudents = inviteDone;
-        const hasTasks = tasks.length > 0;
+        const hasTasks = taskDone;
         // Sequential: step 1 is always done (we're on the course page)
         let completedCount = 1;
         if (hasStudents) completedCount = 2;

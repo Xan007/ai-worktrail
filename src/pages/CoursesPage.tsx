@@ -472,10 +472,17 @@ export function CoursesPage() {
     if (activeTab !== 'teacher') return { currentStep: null as null, completedCount: 0 };
     if (checklistDb === null) return { currentStep: null as null, completedCount: 0 };
     if (checklistDb.dismissed) return { currentStep: null, completedCount: 0 };
-    // Derive from DB + live data
+    // Derive from DB + live data + local persistence
     const hasCourses = teacherCourses.length > 0;
     const hasStudents = checklistDb.hasInvited;
-    const hasTasks = hasTasksFromApi || checklistDb.hasTasks;
+    const hasLocalTaskHistory = teacherCourses.some((c) => {
+      try {
+        return localStorage.getItem(`awt_task_created_${c.id}`) === 'true';
+      } catch {
+        return false;
+      }
+    });
+    const hasTasks = hasTasksFromApi || checklistDb.hasTasks || hasLocalTaskHistory;
     // Sequential: only count a step done if all prior steps are also done
     let completedCount = 0;
     if (hasCourses) completedCount = 1;
@@ -484,7 +491,7 @@ export function CoursesPage() {
     if (completedCount === 3) return { currentStep: null, completedCount: 3 };
     const currentStep = !hasCourses ? 'course' as const : !hasStudents ? 'invite' as const : 'task' as const;
     return { currentStep, completedCount };
-  }, [activeTab, teacherCourses.length, hasTasksFromApi, checklistDb]);
+  }, [activeTab, teacherCourses, hasTasksFromApi, checklistDb]);
 
   // Re-fetch checklist state when page regains focus (e.g. returning from CourseDetailPage)
   useEffect(() => {

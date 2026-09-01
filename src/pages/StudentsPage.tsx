@@ -446,7 +446,7 @@ export function StudentsPage() {
         </div>
       ) : (
         <div className='space-y-6'>
-          {/* Sección del Docente (Visible para todos: docentes y estudiantes) */}
+          {/* Sección del Docente (Visible para todos) */}
           {teacher && (
             <section>
               <h2 className='mb-2.5 flex items-center gap-2 text-base font-semibold text-[#0F172A]'>
@@ -472,153 +472,112 @@ export function StudentsPage() {
             </section>
           )}
 
-          {canManage ? (
-            enrollments.length === 0 ? (
-              <EmptyState
-                title='Aún no hay inscripciones'
-                hint='Comparte el código de clase para que tus estudiantes se unan.'
-              />
-            ) : (
-              <div className='space-y-6'>
-                {pending.length > 0 && (
-                  <section>
-                    <div className="mb-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <h2 className='flex items-center gap-2 text-base font-semibold text-[#0F172A]'>
-                        <Users size={17} className="text-[#0077CC]" />
-                        Solicitudes pendientes
-                        <span className='rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]'>
-                          {pending.length}
-                        </span>
-                      </h2>
-                      {canManage && (
-                        <div className="flex items-center gap-2">
-                          <label className="flex items-center gap-1.5 text-xs font-medium text-[#334155]">
-                            <input
-                              type="checkbox"
-                              checked={selectedPendingIds.size === pending.length && pending.length > 0}
-                              onChange={toggleSelectAllPending}
-                              className="size-4 accent-[#0077CC]"
-                            />
-                            Seleccionar todos
-                          </label>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={bulkBusy || selectedPendingIds.size === 0}
-                            onClick={() => void handleBulk('approved')}
-                            className="h-7 text-xs"
-                          >
-                            Aprobar ({selectedPendingIds.size})
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={bulkBusy || selectedPendingIds.size === 0}
-                            onClick={() => void handleBulk('rejected')}
-                            className="h-7 text-xs text-[#B3372F] border-[#E8CAC7] hover:bg-[#FBEDEB] hover:text-[#B3372F]"
-                          >
-                            Rechazar ({selectedPendingIds.size})
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                    <div className='overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs'>
-                      {pending.map((enrollment) => (
-                        <EnrollmentRow
-                          key={enrollment.enrollment_id}
-                          enrollment={enrollment}
-                          canManage={canManage}
-                          courseId={id ?? ''}
-                          onRefresh={load}
-                          onMessage={notify}
-                          selected={selectedPendingIds.has(enrollment.enrollment_id)}
-                          onToggleSelect={toggleSelectPending}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
-                <section>
-                  <h2 className='mb-2.5 text-base font-semibold text-[#0F172A] flex items-center gap-2'>
-                    <UserCheck size={17} className="text-[#1F7A4D]" />
-                    Estudiantes inscritos{' '}
-                    <span className='rounded-full bg-[#E8F4EE] px-2 py-0.5 text-xs font-semibold text-[#1F7A4D]'>{approved.length}</span>
-                  </h2>
-                  {approved.length === 0 ? (
-                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 text-center text-sm text-[#64748B]">
-                      Sin estudiantes activos por el momento.
-                    </div>
-                  ) : (
-                    <div className='overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs'>
-                      {approved.map((enrollment) => (
-                        <EnrollmentRow
-                          key={enrollment.enrollment_id}
-                          enrollment={enrollment}
-                          canManage={canManage}
-                          courseId={id ?? ''}
-                          onRefresh={load}
-                          onMessage={notify}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
-                {rejected.length > 0 && (
-                  <section>
-                    <h2 className='mb-2.5 text-base font-semibold text-[#64748B] flex items-center gap-2'>
-                      <UserX size={17} className="text-[#64748B]" />
-                      Solicitudes no aceptadas{' '}
-                      <span className='rounded-full bg-[#F0F3F8] px-2 py-0.5 text-xs font-semibold text-[#64748B]'>{rejected.length}</span>
-                    </h2>
-                    <div className='overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs'>
-                      {rejected.map((enrollment) => (
-                        <EnrollmentRow
-                          key={enrollment.enrollment_id}
-                          enrollment={enrollment}
-                          canManage={canManage}
-                          courseId={id ?? ''}
-                          onRefresh={load}
-                          onMessage={notify}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
+          {/* Solicitudes pendientes (Solo para docentes/administradores) */}
+          {canManage && pending.length > 0 && (
+            <section>
+              <div className="mb-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className='flex items-center gap-2 text-base font-semibold text-[#0F172A]'>
+                  <Users size={17} className="text-[#0077CC]" />
+                  Solicitudes pendientes
+                  <span className='rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]'>
+                    {pending.length}
+                  </span>
+                </h2>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-[#334155]">
+                    <input
+                      type="checkbox"
+                      checked={selectedPendingIds.size === pending.length && pending.length > 0}
+                      onChange={toggleSelectAllPending}
+                      className="size-4 accent-[#0077CC]"
+                    />
+                    Seleccionar todos
+                  </label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={bulkBusy || selectedPendingIds.size === 0}
+                    onClick={() => void handleBulk('approved')}
+                    className="h-7 text-xs"
+                  >
+                    Aprobar ({selectedPendingIds.size})
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={bulkBusy || selectedPendingIds.size === 0}
+                    onClick={() => void handleBulk('rejected')}
+                    className="h-7 text-xs text-[#B3372F] border-[#E8CAC7] hover:bg-[#FBEDEB] hover:text-[#B3372F]"
+                  >
+                    Rechazar ({selectedPendingIds.size})
+                  </Button>
+                </div>
               </div>
-            )
-          ) : (
-            <div>
-              {(() => {
-                const peers = approved.filter((e) => e.user.id !== user?.id);
-                return (
-                  <section>
-                    <h2 className='mb-2.5 text-base font-semibold text-[#0F172A] flex items-center gap-2'>
-                      <Users size={17} className="text-[#0077CC]" />
-                      Compañeros de clase{' '}
-                      <span className='rounded-full bg-[#E0F2FE] px-2 py-0.5 text-xs font-semibold text-[#0077CC]'>{peers.length}</span>
-                    </h2>
-                    {peers.length === 0 ? (
-                      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 text-center text-sm text-[#64748B]">
-                        Aún no hay otros estudiantes inscritos.
-                      </div>
-                    ) : (
-                      <div className='overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs'>
-                        {peers.map((enrollment) => (
-                          <EnrollmentRow
-                            key={enrollment.enrollment_id}
-                            enrollment={enrollment}
-                            canManage={false}
-                            courseId={id ?? ''}
-                            onRefresh={load}
-                            onMessage={notify}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                );
-              })()}
-            </div>
+              <div className='overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs'>
+                {pending.map((enrollment) => (
+                  <EnrollmentRow
+                    key={enrollment.enrollment_id}
+                    enrollment={enrollment}
+                    canManage={canManage}
+                    courseId={id ?? ''}
+                    onRefresh={load}
+                    onMessage={notify}
+                    selected={selectedPendingIds.has(enrollment.enrollment_id)}
+                    onToggleSelect={toggleSelectPending}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Lista de Estudiantes / Integrantes Inscritos (Visible para Todos) */}
+          <section>
+            <h2 className='mb-2.5 text-base font-semibold text-[#0F172A] flex items-center gap-2'>
+              <UserCheck size={17} className="text-[#1F7A4D]" />
+              Estudiantes inscritos{' '}
+              <span className='rounded-full bg-[#E8F4EE] px-2 py-0.5 text-xs font-semibold text-[#1F7A4D]'>{approved.length}</span>
+            </h2>
+            {approved.length === 0 ? (
+              <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 text-center text-sm text-[#64748B]">
+                {canManage ? 'Aún no hay inscripciones. Comparte el código de clase.' : 'Aún no hay estudiantes inscritos en este curso.'}
+              </div>
+            ) : (
+              <div className='overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs'>
+                {approved.map((enrollment) => (
+                  <EnrollmentRow
+                    key={enrollment.enrollment_id}
+                    enrollment={enrollment}
+                    canManage={canManage}
+                    courseId={id ?? ''}
+                    onRefresh={load}
+                    onMessage={notify}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Solicitudes no aceptadas (Solo para administradores) */}
+          {canManage && rejected.length > 0 && (
+            <section>
+              <h2 className='mb-2.5 text-base font-semibold text-[#64748B] flex items-center gap-2'>
+                <UserX size={17} className="text-[#64748B]" />
+                Solicitudes no aceptadas{' '}
+                <span className='rounded-full bg-[#F0F3F8] px-2 py-0.5 text-xs font-semibold text-[#64748B]'>{rejected.length}</span>
+              </h2>
+              <div className='overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-2xs'>
+                {rejected.map((enrollment) => (
+                  <EnrollmentRow
+                    key={enrollment.enrollment_id}
+                    enrollment={enrollment}
+                    canManage={canManage}
+                    courseId={id ?? ''}
+                    onRefresh={load}
+                    onMessage={notify}
+                  />
+                ))}
+              </div>
+            </section>
           )}
         </div>
       )}
