@@ -123,22 +123,30 @@ export function SubmissionDetailPage() {
   const submission = detail?.submission ?? null;
   const analysis = detail?.analysis ?? null;
   const [evaluating, setEvaluating] = useState(false);
-  const [evalStep, setEvalStep] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
 
-  const evalSteps = [
-    'Conectando con el servicio de IA y extrayendo conversaciones…',
-    'Analizando patrones de prompting y calidad de interacción…',
-    'Evaluando rúbrica pedagógica y contrastando evidencias…',
-    'Sintetizando fortalezas, áreas de mejora y calificación…',
-  ];
+  const getPhaseMessage = (pct: number) => {
+    if (pct < 30) return 'Conectando con el servicio de IA y extrayendo conversaciones…';
+    if (pct < 60) return 'Analizando patrones de prompting y calidad de interacción…';
+    if (pct < 85) return 'Evaluando rúbrica pedagógica y contrastando evidencias…';
+    return 'Sintetizando fortalezas, áreas de mejora y calificación final…';
+  };
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (evaluating) {
-      setEvalStep(0);
+      setProgressPercent(12);
       interval = setInterval(() => {
-        setEvalStep((prev) => (prev < evalSteps.length - 1 ? prev + 1 : prev));
-      }, 2400);
+        setProgressPercent((prev) => {
+          if (prev < 40) return prev + Math.floor(Math.random() * 6 + 4);
+          if (prev < 70) return prev + Math.floor(Math.random() * 4 + 2);
+          if (prev < 88) return prev + Math.floor(Math.random() * 2 + 1);
+          if (prev < 92) return prev + 1;
+          return 92; // Cap at 92% while waiting for backend response
+        });
+      }, 700);
+    } else {
+      setProgressPercent(0);
     }
     return () => clearInterval(interval);
   }, [evaluating]);
@@ -360,17 +368,17 @@ const backToTask = `/courses/${cid}/tasks/${tid}`;
                   </div>
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#0077CC]">Evaluación en progreso</h3>
-                    <p className="text-xs font-medium text-[#0F172A] mt-0.5">{evalSteps[evalStep]}</p>
+                    <p className="text-xs font-medium text-[#0F172A] mt-0.5">{getPhaseMessage(progressPercent)}</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#0077CC]">{Math.round(((evalStep + 1) / evalSteps.length) * 100)}%</span>
+                <span className="text-xs font-mono font-bold text-[#0077CC]">{progressPercent}%</span>
               </div>
 
               {/* Barra de Progreso */}
               <div className="h-2 w-full overflow-hidden rounded-full bg-[#D7E9F9]">
                 <div
-                  className="h-full bg-[#0077CC] transition-all duration-700 ease-out rounded-full"
-                  style={{ width: `${((evalStep + 1) / evalSteps.length) * 100}%` }}
+                  className="h-full bg-[#0077CC] transition-all duration-500 ease-out rounded-full"
+                  style={{ width: `${progressPercent}%` }}
                 />
               </div>
             </div>
