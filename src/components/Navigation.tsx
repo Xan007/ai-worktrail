@@ -14,27 +14,30 @@ import { useProfileState } from '@/hooks/useBackend';
 
 const NAV = [
   { to: '/courses', label: 'Mis cursos', icon: BookOpen },
-  { to: '/dev/evaluate', label: 'Evaluador', icon: ClipboardList },
+  { to: '/dev/evaluate', label: 'Evaluador de chats', icon: ClipboardList },
 ];
 
 function Brand() {
   return (
-    <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
-      <div className="flex size-7 items-center justify-center rounded-lg bg-[#0077CC] text-white shadow-2xs transition-transform group-hover:scale-105">
-        <span className="size-2 rounded-xs bg-white" />
+    <Link to="/" className="flex shrink-0 items-center gap-3 group">
+      <div className="flex size-9 items-center justify-center rounded-xl bg-[#0077CC] text-white shadow-sm transition-all group-hover:bg-[#0066B3] group-hover:shadow-md">
+        <span className="size-2.5 rounded-sm bg-white" />
       </div>
-      <span className="font-bold text-base tracking-tight text-[#0F172A] group-hover:text-[#0077CC] transition-colors">
-        AI WorkTrail
-      </span>
+      <div className="flex flex-col">
+        <span className="font-bold text-base tracking-tight text-[#0F172A] group-hover:text-[#0077CC] transition-colors leading-tight">
+          AI WorkTrail
+        </span>
+        <span className="text-[10px] font-medium text-[#64748B] tracking-normal">Educación superior</span>
+      </div>
     </Link>
   );
 }
 
 function NavList() {
   const base =
-    'rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap';
+    'rounded-lg px-3.5 py-2 text-sm font-semibold transition-all whitespace-nowrap';
   return (
-    <nav className="hidden items-center gap-1 md:flex ml-4">
+    <nav className="hidden items-center gap-1.5 md:flex ml-6">
       {NAV.map((item) => (
         <NavLink
           key={item.to}
@@ -43,7 +46,7 @@ function NavList() {
             `${base} ${
               isActive
                 ? 'bg-[#E0F2FE] text-[#0077CC]'
-                : 'text-[#334155] hover:bg-[#F0F3F8] hover:text-[#0F172A]'
+                : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
             }`
           }
         >
@@ -66,10 +69,10 @@ function StudentPreviewBanner() {
   if (profile?.role !== 'teacher') return null;
 
   return (
-    <div className="bg-[#0077CC] text-white px-4 py-1.5 text-xs font-medium flex items-center justify-between shadow-inner">
+    <div className="bg-[#0077CC] text-white px-4 py-2 text-xs font-medium flex items-center justify-between shadow-inner">
       <div className="mx-auto flex max-w-[1240px] w-full items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Eye size={14} className="text-[#93C5FD]" />
+          <Eye size={15} className="text-[#93C5FD]" />
           <span>
             <strong>Vista previa de estudiante activa:</strong> Estás viendo este curso exactamente como lo ven tus estudiantes.
           </span>
@@ -77,7 +80,7 @@ function StudentPreviewBanner() {
         <button
           type="button"
           onClick={() => setStudentPreview(false)}
-          className="rounded bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white transition-colors hover:bg-white/25"
+          className="rounded-md bg-white/20 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/30"
         >
           Salir de la vista previa
         </button>
@@ -92,9 +95,9 @@ function NotificationsBell() {
       type="button"
       aria-label="Notificaciones"
       title="Notificaciones"
-      className="relative flex size-8 shrink-0 items-center justify-center rounded-md text-[#334155] transition-colors hover:bg-[#F0F3F8] hover:text-[#0F172A]"
+      className="relative flex size-9 shrink-0 items-center justify-center rounded-lg text-[#475569] transition-colors hover:bg-[#F1F5F9] hover:text-[#0F172A]"
     >
-      <Bell size={16} />
+      <Bell size={18} />
     </button>
   );
 }
@@ -117,29 +120,29 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-1.5 rounded-md p-1 transition-colors hover:bg-[#F0F3F8]" style={{ outline: 'none' }}>
+        <button className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-[#F1F5F9]" style={{ outline: 'none' }}>
           {avatarUrl ? (
-            <img src={avatarUrl} alt={name} className="size-7 rounded-full object-cover border border-[#E2E8F0]" />
+            <img src={avatarUrl} alt={name} className="size-8 rounded-full object-cover border border-[#CBD5E1]" />
           ) : (
-            <span className="flex size-7 items-center justify-center rounded-full bg-[#E0F2FE] font-mono text-xs font-bold text-[#0077CC]">
+            <span className="flex size-8 items-center justify-center rounded-full bg-[#E0F2FE] font-mono text-xs font-bold text-[#0077CC]">
               {initials}
             </span>
           )}
-          <ChevronDown size={12} className="text-[#64748B]" />
+          <ChevronDown size={14} className="text-[#64748B]" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52 p-1">
-        <div className="px-2.5 py-2">
-          <div className="truncate text-xs font-bold text-[#0F172A]">{name}</div>
-          <div className="truncate text-[11px] text-[#64748B]">{user?.primaryEmailAddress?.emailAddress}</div>
+      <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-lg border border-[#E2E8F0]">
+        <div className="px-3 py-2">
+          <div className="truncate text-sm font-bold text-[#0F172A]">{name}</div>
+          <div className="truncate text-xs text-[#64748B]">{user?.primaryEmailAddress?.emailAddress}</div>
         </div>
         <div className="my-1 h-px bg-[#EEF1F6]" />
-        <DropdownMenuItem onClick={() => navigate('/settings')} className="text-xs">
-          <Settings size={14} className="mr-1.5" />
+        <DropdownMenuItem onClick={() => navigate('/settings')} className="text-xs py-2">
+          <Settings size={15} className="mr-2" />
           Configuración de cuenta
         </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" onClick={() => void clerk.signOut().then(() => navigate('/'))} className="text-xs">
-          <LogOut size={14} className="mr-1.5" />
+        <DropdownMenuItem variant="destructive" onClick={() => void clerk.signOut().then(() => navigate('/'))} className="text-xs py-2">
+          <LogOut size={15} className="mr-2" />
           Cerrar sesión
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -152,10 +155,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFBFC]">
-      <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/85 backdrop-blur-md transition-all">
+      <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/90 backdrop-blur-md transition-all">
         <StudentPreviewBanner />
-        <div className="mx-auto flex h-14 w-full max-w-[1240px] items-center justify-between px-6">
-          <div className="flex items-center gap-6">
+        <div className="mx-auto flex h-16 w-full max-w-[1240px] items-center justify-between px-6">
+          <div className="flex items-center gap-8">
             <Brand />
             <NavList />
           </div>
@@ -168,13 +171,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SignedOut>
               <Link
                 to="/login"
-                className="whitespace-nowrap rounded-lg border border-[#E2E8F0] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#0F172A] transition-colors hover:border-[#0077CC] hover:text-[#0077CC]"
+                className="whitespace-nowrap rounded-xl border border-[#CBD5E1] bg-white px-4 py-2 text-sm font-semibold text-[#0F172A] transition-all hover:border-[#0077CC] hover:text-[#0077CC] shadow-2xs"
               >
                 Ingresar
               </Link>
               <Link
                 to="/onboarding"
-                className="whitespace-nowrap rounded-lg bg-[#0077CC] px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#0066B3]"
+                className="whitespace-nowrap rounded-xl bg-[#0077CC] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#0066B3] hover:shadow-md active:scale-95"
               >
                 Comenzar gratis
               </Link>
